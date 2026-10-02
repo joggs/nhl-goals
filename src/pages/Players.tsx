@@ -5,6 +5,7 @@ import { useData } from "../lib/data";
 import { useFilteredGoals, useGoalFilter } from "../lib/filters";
 import { FilterBar } from "../components/FilterBar";
 import { Face, Flag, GoalCard, TeamLogo } from "../components/ui";
+import { RinkMap } from "../components/RinkMap";
 import { fmtDate } from "../lib/util";
 
 interface Row { id: number; points: number; goals: number; assists: number; ppg: number; shg: number; gwg: number; hat: number; en: number }
@@ -162,6 +163,7 @@ export function PlayerPage() {
           <div><h3>Shot types</h3>{bar(stats.shots)}</div>
           <div><h3>Where from</h3>{bar(stats.zones)}</div>
           <div><h3>Against</h3>{bar(stats.vs)}</div>
+          <div><h3>Goal map</h3><RinkMap goals={scored} /></div>
         </div>
       )}
       <div className="row">

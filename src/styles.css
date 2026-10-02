@@ -168,3 +168,8 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 
 .edge-cols { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); } .edge-blurb { margin: -.4rem 0 .4rem; font-size: .8rem; } .edge-row { padding: .4rem 0; } .edge-sub { display: block; color: var(--muted); font-size: .72rem; white-space: normal; }
 .edge-row .leader-name { white-space: normal; }
+
+.rink svg { width: 100%; height: auto; display: block; } .rink-ice { fill: color-mix(in srgb, var(--accent) 6%, var(--card2, #151a24)); stroke: var(--line); stroke-width: .6; }
+.rink-lines line, .rink-lines circle, .rink-lines path { stroke: var(--muted); stroke-width: .35; opacity: .55; } .rink-blue { stroke: #4cc9f0 !important; } .rink-red { stroke: var(--goal) !important; } .rink-net { fill: var(--muted); stroke: none !important; } .rink-dot { fill: var(--goal); stroke: none !important; }
+.rink-goal { fill: var(--accent); fill-opacity: .6; stroke: #fff; stroke-width: .25; } .rink-goal.pp, .rink-key { fill: var(--goal); } .rink-goal.pp { fill: var(--goal); }
+.rink-cap { margin: .3rem 0 0; font-size: .75rem; } .rink-key { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; background: var(--goal); vertical-align: -1px; }
