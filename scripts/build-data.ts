@@ -11,7 +11,7 @@
  * Finished games are cached in .cache/ and never re-fetched.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import type { Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
+import type { EdgeBoardId, EdgeData, EdgeEntry, EdgePos, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
 import { cached, pool, stats, web } from "./lib-nhl.js";
 
@@ -231,6 +231,42 @@ async function loadPlayoffs(season: number): Promise<PlayoffBracket> {
   return { season, series };
 }
 
+const EDGE_POS: EdgePos[] = ["all", "F", "D"];
+const EDGE_BOARDS: Record<EdgeBoardId, { path: (pos: EdgePos, season: number) => string; read: (r: any) => Pick<EdgeEntry, "value" | "sub" | "when"> }> = {
+  speed: {
+    path: (pos, season) => `/edge/skater-speed-top-10/${pos}/max/${season}/2`,
+    read: (r) => ({ value: r.maxSpeed.imperial, sub: `${r.burstsOver22} bursts over 22 mph`, when: overlayWhen(r.maxSpeed.overlay) }),
+  },
+  shot: {
+    path: (pos, season) => `/edge/skater-shot-speed-top-10/${pos}/max/${season}/2`,
+    read: (r) => ({ value: r.hardestShot.imperial, sub: `${r.shotAttemptsOver100} over 100 mph · ${r.shotAttempts90To100} at 90–100`, when: overlayWhen(r.hardestShot.overlay) }),
+  },
+  distance: {
+    path: (pos, season) => `/edge/skater-distance-top-10/${pos}/all/total/${season}/2`,
+    read: (r) => ({ value: r.distanceTotal.imperial, sub: `${r.distancePer60.imperial.toFixed(1)} mi per 60 min` }),
+  },
+  zone: {
+    path: (pos, season) => `/edge/skater-zone-time-top-10/${pos}/all/offensive/${season}/2`,
+    read: (r) => ({ value: r.offensiveZoneTime * 100, sub: `${(r.neutralZoneTime * 100).toFixed(0)}% neutral · ${(r.defensiveZoneTime * 100).toFixed(0)}% defensive` }),
+  },
+};
+const overlayWhen = (o: any) => (o?.gameDate ? `${o.gameDate} ${o.awayTeam?.abbrev} @ ${o.homeTeam?.abbrev}` : undefined);
+
+/** EDGE top-10 boards for one season. Player ids are only present in the slug ("beck-malenstyn-8479359"). */
+async function loadEdge(season: number): Promise<EdgeData> {
+  const boards = { speed: {}, shot: {}, distance: {}, zone: {} } as EdgeData["boards"];
+  const jobs = (Object.keys(EDGE_BOARDS) as EdgeBoardId[]).flatMap((b) => EDGE_POS.map((pos) => ({ b, pos })));
+  await pool(jobs, 4, async ({ b, pos }) => {
+    const rows: any[] = await web(EDGE_BOARDS[b].path(pos, season)).catch(() => []);
+    boards[b][pos] = rows.map((r): EdgeEntry => ({
+      id: Number(/(\d+)$/.exec(r.player.slug)?.[1]), name: `${r.player.firstName.default} ${r.player.lastName.default}`,
+      team: r.player.team?.abbrev, pos: r.player.position, h: r.player.headshot?.split("/mugs/nhl/")[1],
+      ...EDGE_BOARDS[b].read(r),
+    }));
+  });
+  return { season, boards };
+}
+
 async function main() {
   await mkdir(OUT, { recursive: true });
   const cur = await currentSeasonId();
@@ -260,6 +296,10 @@ async function main() {
       await writeFile(`${OUT}/playoffs-${season}.json`, JSON.stringify(po));
       console.log(`  wrote playoff bracket (${po.series.length} series)`);
     } catch (e) { console.warn(`  playoffs ${season} failed:`, (e as Error).message); }
+    try {
+      await writeFile(`${OUT}/edge-${season}.json`, JSON.stringify(await loadEdge(season)));
+      console.log("  wrote EDGE leaderboards");
+    } catch (e) { console.warn(`  edge ${season} failed:`, (e as Error).message); }
   }
 
   console.log("Nationalities…");

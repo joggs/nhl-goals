@@ -165,3 +165,6 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .series-detail { margin-top: 1rem; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); } .series-detail h3 { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin: 0; }
 .g-list { list-style: none; padding: 0; margin: .5rem 0 0; display: grid; gap: .25rem; } .g-row { display: flex; gap: .6rem; align-items: baseline; color: var(--text); } .g-num { font-weight: 700; min-width: 2.2ch; } .g-win { font-weight: 700; }
 @media (max-width: 640px) { .hide-sm { display: none; } }
+
+.edge-cols { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); } .edge-blurb { margin: -.4rem 0 .4rem; font-size: .8rem; } .edge-row { padding: .4rem 0; } .edge-sub { display: block; color: var(--muted); font-size: .72rem; white-space: normal; }
+.edge-row .leader-name { white-space: normal; }

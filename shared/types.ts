@@ -103,3 +103,15 @@ export interface PlayoffSeries {
   games: PlayoffGame[];
 }
 export interface PlayoffBracket { season: number; series: PlayoffSeries[] }
+
+/** NHL EDGE puck/player tracking leaderboards (top 10 per board and position group). */
+export type EdgePos = "all" | "F" | "D";
+export type EdgeBoardId = "speed" | "shot" | "distance" | "zone";
+export interface EdgeEntry {
+  id: number; name: string; team: string; pos: string;
+  h?: string;       // headshot path after /mugs/nhl/
+  value: number;    // mph, miles or percent, depending on the board
+  sub?: string;     // secondary stat, preformatted
+  when?: string;    // "2026-01-31 NJD @ OTT" for single-game records
+}
+export interface EdgeData { season: number; boards: Record<EdgeBoardId, Record<EdgePos, EdgeEntry[]>> }
