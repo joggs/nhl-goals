@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { Component, useEffect } from "react";
+import type { ErrorInfo, ReactNode } from "react";
 import { HashRouter, NavLink, Route, Routes, Link } from "react-router-dom";
 import { DataProvider, useData } from "./lib/data";
 import { useFavorites, useTheme } from "./lib/favorites";
@@ -69,6 +70,23 @@ function Shell() {
   );
 }
 
+/** Without this a render error unmounts the whole app and the page just goes blank. */
+class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
+  state: { error?: Error } = {};
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.error(error, info.componentStack); }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="center-msg">
+        <h2>Something went wrong</h2>
+        <p className="muted">{this.state.error.message}</p>
+        <p><a href={import.meta.env.BASE_URL}>Back to start</a> · <button className="linkbtn" onClick={() => location.reload()}>Reload</button></p>
+      </div>
+    );
+  }
+}
+
 export default function App() {
-  return <HashRouter><DataProvider><Shell /></DataProvider></HashRouter>;
+  return <HashRouter><ErrorBoundary><DataProvider><Shell /></DataProvider></ErrorBoundary></HashRouter>;
 }
