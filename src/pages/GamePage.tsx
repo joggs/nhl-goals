@@ -4,6 +4,7 @@ import { useData } from "../lib/data";
 import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus } from "../lib/util";
 import { Chip, ClipPlayer, Face, GoalCard, TeamLogo } from "../components/ui";
+import { GameShotMap } from "../components/GameShotMap";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
 
@@ -59,6 +60,7 @@ export default function GamePage() {
       {g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : blocks.map((b) => (
         <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} />)}</div>
       ))}
+      <GameShotMap game={g} />
         </>
       )}
     </section>

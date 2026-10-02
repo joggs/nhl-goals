@@ -3,6 +3,7 @@ import type { Goal } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useShots, type Shot, type ShotKind } from "../lib/shots";
 import { Chip } from "./ui";
+import { ZoneBars } from "./ZoneBars";
 import { Heat, Rink, RinkMap, Versus } from "./RinkMap";
 
 const KINDS: { kind: ShotKind; label: string }[] = [
@@ -37,13 +38,14 @@ export function ShotMap({ goals, pick }: { goals: Goal[]; pick: (s: Shot) => boo
         <Chip active={mode === "all"} onClick={() => setMode("all")} title="Every shot attempt, including saves, misses and blocks">All shots</Chip>
         <Chip active={mode === "vs"} onClick={() => setMode("vs")} title="Where these shots come from compared with the league average">vs league</Chip>
       </div>
-      {!all ? <RinkMap goals={goals} /> : shots === undefined ? <div className="spinner" /> : shots === null ? <p className="empty">No shot data for this season.</p> : (
+      {!all ? <><RinkMap goals={goals} /><ZoneBars points={goals.filter((g) => g.x !== undefined && !g.ownGoal).map((g) => ({ x: g.x!, y: g.y! }))} /></> : shots === undefined ? <div className="spinner" /> : shots === null ? <p className="empty">No shot data for this season.</p> : (
         <div className="rink">
           <Rink label={`Map of ${shown.length} shot attempts`}>
             {mode === "vs" ? <Versus points={shown} baseline={league} /> : shown.length > 150 ? <Heat points={shown} /> : shown.map((s, i) => <circle key={i} cx={s.x} cy={42.5 + s.y} r={s.kind === 3 ? 1.2 : 0.8} className={`shot shot-${s.kind}`} />)}
             {mode === "all" && shown.length > 150 && count[3] > 0 && count[3] <= 60 && on.has(3) && shown.filter((s) => s.kind === 3).map((s, i) => <circle key={`g${i}`} cx={s.x} cy={42.5 + s.y} r="1.1" className="shot shot-3" />)}
           </Rink>
           <div className="row">{KINDS.map((k) => <Chip key={k.kind} active={on.has(k.kind)} onClick={() => toggle(k.kind)}><span className={`dot dot-${k.kind}`} /> {k.label} {count[k.kind]}</Chip>)}</div>
+          <ZoneBars points={shown} baseline={mode === "vs" ? league : undefined} />
           <p className="muted rink-cap">{mine.length} attempts{mode === "vs" ? <> · <span className="dot dot-hot" /> more often than the league · <span className="dot dot-cold" /> less often</> : shown.length > 150 ? " · brighter = more shots" : ""} · {onTarget ? `${((count[3] / onTarget) * 100).toFixed(1)}% of shots on goal scored` : "no shots on goal"}</p>
         </div>
       )}

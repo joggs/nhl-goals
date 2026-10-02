@@ -193,3 +193,9 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .heat rect { fill: var(--accent); shape-rendering: crispEdges; } .rink-goal { stroke-width: .15; fill-opacity: .75; }
 
 .versus .hot { fill: #ff7a45; } .versus .cold { fill: #4c8dff; } .dot-hot { background: #ff7a45; } .dot-cold { background: #4c8dff; }
+
+.game-maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; } .game-map h3 { display: flex; align-items: center; gap: .4rem; margin: .3rem 0; }
+.shot.clickable { cursor: pointer; } .shot.clickable:hover { stroke-width: .6; }
+
+.zones { display: grid; gap: .3rem; margin: .6rem 0 .2rem; } .zone-row { display: grid; grid-template-columns: 9.5ch 1fr 4ch 3ch; align-items: center; gap: .4rem; font-size: .8rem; } .zone-bar { position: relative; height: 8px; background: color-mix(in srgb, var(--muted) 18%, transparent); border-radius: 4px; } .zone-bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 4px; } .zone-bar u { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); opacity: .8; text-decoration: none; }
+.zone-row b { text-align: right; font-variant-numeric: tabular-nums; } .zone-row small.up { color: #ff7a45; } .zone-row small.down { color: #4c8dff; }
