@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
-import { addDays, fmtDate, gameStatus, periodLabel, surname } from "../lib/util";
+import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
 import { Chip, ClipPlayer, Flag, TeamLogo, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
@@ -33,7 +33,7 @@ function GameCard({ g }: { g: Game }) {
         <ul className="mini-goals">
           {g.goals.map((x, i) => (
             <Fragment key={x.id}>
-              {i > 0 && g.goals[i - 1].period !== x.period && <li className="period-sep" aria-hidden="true"><i /><span>{periodLabel(x)}</span><i /></li>}
+              {i > 0 && g.goals[i - 1].period !== x.period && <li className="period-sep" aria-hidden="true" />}
             <li>
               <button className="goal-line" disabled={!x.clip} title={x.clip ? "Watch the goal" : undefined}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}>
