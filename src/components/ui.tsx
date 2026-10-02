@@ -133,6 +133,12 @@ export function GoalCard({ goal, showGame = true, compact = false }: { goal: Goa
           <Link to={`/player/${goal.scorer.id}`}><Flag code={info?.nat} /> {goal.scorer.name}</Link>
           <span> · {goal.team}{goal.seasonGoal ? ` · goal #${goal.seasonGoal}` : ""}</span>
         </p>
+        {goal.assists.length > 0 && (
+          <p className="goal-assists">
+            <span>Assists</span>
+            {goal.assists.map((a) => <Link key={a.id} to={`/player/${a.id}`}><Flag code={players[a.id]?.nat} /> {a.name}</Link>)}
+          </p>
+        )}
         <div className="goal-meta">
           <span className="score-pill" title="Score after the goal">
             {game ? (

@@ -24,7 +24,7 @@ export function rangeBounds(range: Range, anchor: string, from?: string, to?: st
 
 export interface GoalFilter {
   range: Range; from?: string; to?: string;
-  nat: string[]; team: string[]; against: string[]; player?: number; q: string;
+  nat: string[]; natRole: "scorer" | "assist" | "either"; team: string[]; against: string[]; player?: number; q: string;
   strength: string[]; tags: string[]; period: string[]; mine: boolean; sort: string; type: string;
 }
 
@@ -37,6 +37,7 @@ export function useGoalFilter(defaults: Partial<GoalFilter> = {}) {
     range: (sp.get("range") as Range) ?? defaults.range ?? "week",
     from: sp.get("from") ?? undefined, to: sp.get("to") ?? undefined,
     nat: sp.has("nat") ? list(sp.get("nat")) : defaults.nat ?? [],
+    natRole: sp.get("by") === "assist" ? "assist" : sp.get("by") === "either" ? "either" : "scorer",
     team: list(sp.get("team")), against: list(sp.get("against")),
     player: sp.get("player") ? Number(sp.get("player")) : defaults.player,
     q: sp.get("q") ?? "", strength: list(sp.get("str")), tags: list(sp.get("tag")), period: list(sp.get("per")),
@@ -52,6 +53,7 @@ export function useGoalFilter(defaults: Partial<GoalFilter> = {}) {
     put("team", m.team.join(",")); put("against", m.against.join(","));
     put("player", m.player ? String(m.player) : undefined); put("q", m.q);
     put("str", m.strength.join(",")); put("tag", m.tags.join(",")); put("per", m.period.join(","));
+    put("by", m.natRole === "scorer" ? undefined : m.natRole);
     put("mine", m.mine ? "1" : undefined); put("sort", m.sort === (defaults.sort ?? "new") ? undefined : m.sort);
     put("type", m.type);
     setSp(next, { replace: true });
@@ -68,7 +70,11 @@ export function useFilteredGoals(f: GoalFilter): Goal[] {
     const out = goals.filter((g) => {
       if (g.date < a || g.date > b) return false;
       if (f.type && String(g.gameId).slice(4, 6) !== f.type) return false;
-      if (f.nat.length && !f.nat.includes(players[g.scorer.id]?.nat ?? "?")) return false;
+      if (f.nat.length) {
+        const has = (id: number) => f.nat.includes(players[id]?.nat ?? "?");
+        const scored = has(g.scorer.id), assisted = g.assists.some((a) => has(a.id));
+        if (!(f.natRole === "scorer" ? scored : f.natRole === "assist" ? assisted : scored || assisted)) return false;
+      }
       if (f.team.length && !f.team.includes(g.team)) return false;
       if (f.against.length && !f.against.includes(g.against)) return false;
       if (f.player && g.scorer.id !== f.player && !g.assists.some((x) => x.id === f.player)) return false;

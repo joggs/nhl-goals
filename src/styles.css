@@ -204,3 +204,5 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .map-tip.flip { transform: translate(calc(-100% - 12px), -110%); }
 .shot-0, .shot-1, .shot-2 { stroke: transparent; stroke-width: 3; paint-order: stroke; pointer-events: all; } .game-map .shot:hover { fill-opacity: 1; }
 .tip-host { position: relative; }
+
+.goal-assists { display: flex; flex-wrap: wrap; gap: .1rem .7rem; margin: .1rem 0 0; font-size: .78rem; color: var(--muted); } .goal-assists a { color: var(--muted); } .goal-assists a:hover { color: var(--accent); }

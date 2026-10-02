@@ -16,9 +16,13 @@ export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Parti
   const { teams: favs } = useFavorites();
   const nats = useMemo(() => {
     const c = new Map<string, number>();
-    for (const g of goals) { const n = players[g.scorer.id]?.nat ?? "?"; c.set(n, (c.get(n) ?? 0) + 1); }
+    const add = (id: number) => { const n = players[id]?.nat ?? "?"; c.set(n, (c.get(n) ?? 0) + 1); };
+    for (const g of goals) {
+      if (f.natRole !== "assist") add(g.scorer.id);
+      if (f.natRole !== "scorer") g.assists.forEach((a) => add(a.id));
+    }
     return [...c.entries()].sort((a, b) => b[1] - a[1]);
-  }, [goals, players]);
+  }, [goals, players, f.natRole]);
   const toggle = (key: "nat" | "team" | "strength" | "tags" | "period", v: string) =>
     set({ [key]: f[key].includes(v) ? f[key].filter((x) => x !== v) : [...f[key], v] } as Partial<GoalFilter>);
 
@@ -56,6 +60,14 @@ export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Parti
       </div>
       <div className="row">
         {f.nat.map((n) => <Chip key={n} active onClick={() => toggle("nat", n)}>{flag(n)} {manifest.countries[n] ?? n} ✕</Chip>)}
+        {f.nat.length > 0 && !hide.includes("natrole") && (
+          <>
+            {([["scorer", "Scored by"], ["assist", "Assisted by"], ["either", "Either"]] as const).map(([r, l]) => (
+              <Chip key={r} active={f.natRole === r} onClick={() => set({ natRole: r })} title="Which player the nationality filter applies to">{l}</Chip>
+            ))}
+            <span className="sep" />
+          </>
+        )}
         {f.team.map((n) => <Chip key={n} active onClick={() => toggle("team", n)}>{n} ✕</Chip>)}
         {f.against.map((n) => <Chip key={n} active onClick={() => set({ against: f.against.filter((x) => x !== n) })}>vs {n} ✕</Chip>)}
         {f.player && <Chip active onClick={() => set({ player: undefined })}>{players[f.player]?.n ?? f.player} ✕</Chip>}

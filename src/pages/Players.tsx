@@ -66,7 +66,7 @@ export function Players() {
   return (
     <section>
       <div className="row between"><h1>Scoring leaders</h1><span className="muted">{rows.length} players · {goals.length} goals</span></div>
-      <FilterBar f={f} set={set} />
+      <FilterBar f={f} set={set} hide={["natrole"]} />
       {loading ? <div className="spinner" /> : (
         <>
           <div className="cols">
