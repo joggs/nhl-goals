@@ -37,10 +37,10 @@ export function GameShotMap({ game }: { game: Game }) {
                   <div className="rink">
                     <Rink label={`${abbrev} shots`}>
                       {own.map((s, i) => (
-                        <circle key={i} cx={s.x} cy={42.5 + s.y} r="1" className={`shot shot-${s.kind}`} onMouseMove={at(shotTip(s, name(s.player)), abbrev)} onMouseLeave={hide} />
+                        <circle key={i} cx={s.x} cy={42.5 - s.y} r="1" className={`shot shot-${s.kind}`} onMouseMove={at(shotTip(s, name(s.player)), abbrev)} onMouseLeave={hide} />
                       ))}
                       {goals.map((g) => (
-                        <circle key={g.id} cx={g.x} cy={42.5 + g.y!} r="2" className={`shot shot-3${g.clip ? " clickable" : ""}`} onClick={() => g.clip && setPlay(g)}
+                        <circle key={g.id} cx={g.x} cy={42.5 - g.y!} r="2" className={`shot shot-3${g.clip ? " clickable" : ""}`} onClick={() => g.clip && setPlay(g)}
                           onMouseMove={at(goalTip(g, game), abbrev)} onMouseLeave={hide} />
                       ))}
                     </Rink>

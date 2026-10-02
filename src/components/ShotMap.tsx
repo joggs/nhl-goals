@@ -44,8 +44,8 @@ export function ShotMap({ goals, pick }: { goals: Goal[]; pick: (s: Shot) => boo
         <div className="rink tip-host">
           <MapTip tip={tip} />
           <Rink label={`Map of ${shown.length} shot attempts`}>
-            {mode === "vs" ? <Versus points={shown} baseline={league} /> : shown.length > 150 ? <Heat points={shown} /> : shown.map((s, i) => <circle key={i} cx={s.x} cy={42.5 + s.y} r={s.kind === 3 ? 1.2 : 0.8} className={`shot shot-${s.kind}`} onMouseMove={at(shotTip(s, players[s.player]?.n ?? "Unknown", gameById.get(s.game), true))} onMouseLeave={hide} />)}
-            {mode === "all" && shown.length > 150 && count[3] > 0 && count[3] <= 60 && on.has(3) && shown.filter((s) => s.kind === 3).map((s, i) => <circle key={`g${i}`} cx={s.x} cy={42.5 + s.y} r="1.1" className="shot shot-3" onMouseMove={at(shotTip(s, players[s.player]?.n ?? "Unknown", gameById.get(s.game), true))} onMouseLeave={hide} />)}
+            {mode === "vs" ? <Versus points={shown} baseline={league} /> : shown.length > 150 ? <Heat points={shown} /> : shown.map((s, i) => <circle key={i} cx={s.x} cy={42.5 - s.y} r={s.kind === 3 ? 1.2 : 0.8} className={`shot shot-${s.kind}`} onMouseMove={at(shotTip(s, players[s.player]?.n ?? "Unknown", gameById.get(s.game), true))} onMouseLeave={hide} />)}
+            {mode === "all" && shown.length > 150 && count[3] > 0 && count[3] <= 60 && on.has(3) && shown.filter((s) => s.kind === 3).map((s, i) => <circle key={`g${i}`} cx={s.x} cy={42.5 - s.y} r="1.1" className="shot shot-3" onMouseMove={at(shotTip(s, players[s.player]?.n ?? "Unknown", gameById.get(s.game), true))} onMouseLeave={hide} />)}
           </Rink>
           <div className="row">{KINDS.map((k) => <Chip key={k.kind} active={on.has(k.kind)} onClick={() => toggle(k.kind)}><span className={`dot dot-${k.kind}`} /> {k.label} {count[k.kind]}</Chip>)}</div>
           <ZoneBars points={shown} baseline={mode === "vs" ? league : undefined} />

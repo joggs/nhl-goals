@@ -7,7 +7,10 @@ const CELL = 2;      // feet per heat cell
 const SIGMA = 1.6;   // smoothing, in cells
 const DOT_LIMIT = 60; // above this many points individual dots turn into mush, so show a heat map instead
 
-/** Offensive half of the rink, attacking net on the right. Coordinates are normalised that way (x up to +89, y -42.5..42.5). */
+/**
+ * Offensive half of the rink, attacking net on the right. Coordinates are normalised that way (x up to +89, y -42.5..42.5),
+ * and +y is the shooter's left, i.e. up on screen, so SVG y = 42.5 - y.
+ */
 export function Rink({ label, children }: { label: string; children?: React.ReactNode }) {
   return (
     <svg viewBox="-2 -2 104 89" role="img" aria-label={label}>
@@ -41,7 +44,7 @@ export function RinkMap({ goals }: { goals: Goal[] }) {
         {pts.length > DOT_LIMIT
           ? <Heat points={pts.map((g) => ({ x: g.x!, y: g.y! }))} />
           : pts.map((g) => (
-            <circle key={g.id} cx={g.x} cy={42.5 + g.y!} r="1" className={`rink-goal${g.strength === "PP" ? " pp" : ""}`} onMouseMove={at(goalTip(g, gameById.get(g.gameId), true))} onMouseLeave={hide} />
+            <circle key={g.id} cx={g.x} cy={42.5 - g.y!} r="1" className={`rink-goal${g.strength === "PP" ? " pp" : ""}`} onMouseMove={at(goalTip(g, gameById.get(g.gameId), true))} onMouseLeave={hide} />
           ))}
       </Rink>
       <p className="muted rink-cap">{pts.length} goals{pts.length > DOT_LIMIT ? " · brighter = more goals" : <> · <span className="rink-key" /> power play</>}</p>
@@ -55,7 +58,7 @@ export function Heat({ points }: { points: { x: number; y: number }[] }) {
     const w = Math.ceil(100 / CELL), h = Math.ceil(85 / CELL), r = Math.ceil(SIGMA * 2.5);
     const grid = new Float32Array(w * h);
     for (const p of points) {
-      const cx = p.x / CELL, cy = (p.y + 42.5) / CELL;
+      const cx = p.x / CELL, cy = (42.5 - p.y) / CELL;
       for (let j = Math.max(0, Math.floor(cy) - r); j <= Math.min(h - 1, Math.floor(cy) + r); j++)
         for (let i = Math.max(0, Math.floor(cx) - r); i <= Math.min(w - 1, Math.floor(cx) + r); i++) {
           const d2 = (i + 0.5 - cx) ** 2 + (j + 0.5 - cy) ** 2;
@@ -87,7 +90,7 @@ const DW = Math.ceil(100 / DCELL), DH = Math.ceil(85 / DCELL);
 function grid(points: { x: number; y: number }[]): Float32Array {
   const g = new Float32Array(DW * DH), r = Math.ceil(DSIGMA * 2.5);
   for (const p of points) {
-    const cx = p.x / DCELL, cy = (p.y + 42.5) / DCELL;
+    const cx = p.x / DCELL, cy = (42.5 - p.y) / DCELL;
     for (let j = Math.max(0, Math.floor(cy) - r); j <= Math.min(DH - 1, Math.floor(cy) + r); j++)
       for (let i = Math.max(0, Math.floor(cx) - r); i <= Math.min(DW - 1, Math.floor(cx) + r); i++)
         g[j * DW + i] += Math.exp(-((i + 0.5 - cx) ** 2 + (j + 0.5 - cy) ** 2) / (2 * DSIGMA * DSIGMA));
