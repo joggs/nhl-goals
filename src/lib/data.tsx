@@ -3,7 +3,7 @@ import type { Game, Goal, Manifest, PlayerInfo, StandingRow, TeamInfo } from "..
 
 const base = import.meta.env.BASE_URL;
 const getJson = async <T,>(name: string): Promise<T> => {
-  const r = await fetch(`${base}data/${name}`);
+  const r = await fetch(`${base}data/${name}`, { cache: "no-cache" });
   if (!r.ok) throw new Error(`${name}: ${r.status}`);
   return r.json();
 };

@@ -13,7 +13,7 @@ export function useEdge(season: number, type: GameType): EdgeData | null | undef
     let live = true;
     let p = cache.get(key);
     if (!p) {
-      p = fetch(`${base}data/edge-${season}${type === "playoffs" ? "-po" : ""}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      p = fetch(`${base}data/edge-${season}${type === "playoffs" ? "-po" : ""}.json`, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
       cache.set(key, p);
     }
     p.then((data) => live && setState({ key, data }));

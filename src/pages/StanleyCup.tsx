@@ -103,7 +103,7 @@ export default function StanleyCup() {
   useEffect(() => {
     let live = true;
     setData(undefined); setSel(undefined);
-    fetch(`${base}data/playoffs-${season}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => live && setData(d));
+    fetch(`${base}data/playoffs-${season}.json`, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => live && setData(d));
     return () => { live = false; };
   }, [season]);
 

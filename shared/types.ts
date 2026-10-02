@@ -125,4 +125,4 @@ export interface EdgeData { season: number; boards: Record<EdgeBoardId, Record<E
  * where x/y are normalised (attacking net at x=+89), kind is 0 saved, 1 missed, 2 blocked, 3 goal and strength is
  * 0 even, 1 power play, 2 short-handed. Period 4+ is overtime.
  */
-export interface ShotFile { season: number; teams: string[]; games: number[]; types: string[]; shots: number[] }
+export interface ShotFile { season: number; stride?: number; teams: string[]; games: number[]; types?: string[]; shots: number[] }
