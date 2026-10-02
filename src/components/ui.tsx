@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { Goal } from "../../shared/types";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useData } from "../lib/data";
 import { flag } from "../lib/flags";
 import { headshot, logo, periodLabel } from "../lib/util";
@@ -26,6 +27,29 @@ export function ClipPlayer({ clip, pageUrl }: { clip: number; pageUrl?: string }
   if (state.error) return <p className="muted">Clip unavailable here. {pageUrl && <a href={pageUrl} target="_blank" rel="noreferrer">Open on NHL.com ↗</a>}</p>;
   if (!state.src) return <div className="video loading" />;
   return <video className="video" src={state.src} controls autoPlay playsInline preload="auto" />;
+}
+
+/** Large centred player for a goal clip. Closes on backdrop click, the ✕ button or Escape. */
+export function ClipModal({ goal, onClose }: { goal: Goal; onClose: () => void }) {
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", key);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", key); document.body.style.overflow = prev; };
+  }, [onClose]);
+  if (!goal.clip) return null;
+  return createPortal(
+    <div className="modal-back" onClick={(e) => { e.stopPropagation(); onClose(); }} role="dialog" aria-modal="true" aria-label="Goal video">
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-x" onClick={onClose} aria-label="Close">✕</button>
+        <ClipPlayer clip={goal.clip} pageUrl={goal.clipUrl} />
+        <p className="modal-cap">{goal.text}</p>
+        {goal.clipUrl && <a className="modal-link" href={goal.clipUrl} target="_blank" rel="noreferrer">NHL.com ↗</a>}
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
 export const TeamLogo = ({ abbrev, size = 28 }: { abbrev: string; size?: number }) => (
@@ -114,7 +138,7 @@ export function GoalCard({ goal, showGame = true, compact = false }: { goal: Goa
           {goal.distance !== undefined && <span>{goal.distance} ft</span>}
           {tags.map((t) => <span key={t} className="tag">{t}</span>)}
         </div>
-        {video && goal.clip && <ClipPlayer clip={goal.clip} pageUrl={goal.clipUrl} />}
+        {video && goal.clip && <ClipModal goal={goal} onClose={() => setVideo(false)} />}
       </div>
     </article>
   );

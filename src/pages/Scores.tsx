@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
-import { Chip, ClipPlayer, Flag, TeamLogo, TvIcon } from "../components/ui";
+import { Chip, ClipModal, Flag, TeamLogo, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
@@ -53,9 +53,7 @@ function GameCard({ g }: { g: Game }) {
           ))}
         </ul>
       )}
-      {!hid && playing && (() => { const x = g.goals.find((q) => q.id === playing); return x?.clip ? (
-        <div onClick={(e) => e.preventDefault()}><ClipPlayer clip={x.clip} pageUrl={x.clipUrl} /></div>
-      ) : null; })()}
+      {!hid && playing && (() => { const x = g.goals.find((q) => q.id === playing); return x?.clip ? <ClipModal goal={x} onClose={() => setPlaying(null)} /> : null; })()}
     </Link>
   );
 }

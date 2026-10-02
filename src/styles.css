@@ -140,3 +140,12 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 /* Every goal row sits on its own faint band. */
 .mini-goals li.row-band { background: rgba(255,255,255,.05); margin: 0 -.45rem; padding: .12rem .45rem; border-radius: 6px; }
 .mini-goals { gap: .18rem; }
+
+/* Goal clip popup */
+.modal-back { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgba(4,6,10,.82); backdrop-filter: blur(6px); animation: fade .15s ease-out; }
+@keyframes fade { from { opacity: 0; } }
+.modal { position: relative; width: min(96vw, calc((100vh - 8rem) * 16 / 9), 1400px); background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: .6rem .6rem .8rem; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.modal video.video, .modal .video { margin-top: 0; width: 100%; border-radius: 10px; }
+.modal-x { position: absolute; top: -14px; right: -14px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--card2); color: var(--text); font-size: 1rem; cursor: pointer; z-index: 2; }
+.modal-x:hover { background: var(--goal); border-color: var(--goal); }
+.modal-cap { margin: .6rem .4rem 0; font-size: 1rem; font-weight: 500; } .modal-link { margin-left: .4rem; font-size: .85rem; }
