@@ -18,7 +18,7 @@ const KINDS: { kind: ShotKind; label: string }[] = [
 export function ShotMap({ goals, pick }: { goals: Goal[]; pick: (s: Shot) => boolean }) {
   const { season, players, gameById } = useData();
   const { tip, at, hide } = useMapTip();
-  const [mode, setMode] = useState<"goals" | "all" | "vs">("goals");
+  const [mode, setMode] = useState<"goals" | "all" | "vs">("all");
   const all = mode !== "goals";
   const [on, setOn] = useState<Set<ShotKind>>(new Set([0, 1, 2, 3]));
   const shots = useShots(season, all);
