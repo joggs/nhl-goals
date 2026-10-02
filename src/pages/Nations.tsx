@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { SpoilerGate } from "../lib/spoilers";
 import { useData } from "../lib/data";
 import { RANGES, rangeBounds, useGoalFilter } from "../lib/filters";
@@ -8,6 +8,7 @@ import { Chip, Face, Flag } from "../components/ui";
 export default function Nations() {
   const { goals, players, manifest, anchor, loading } = useData();
   const [f, set] = useGoalFilter({ range: "month" });
+  const navigate = useNavigate();
   const rows = useMemo(() => {
     const [a, b] = rangeBounds(f.range, anchor, f.from, f.to);
     const m = new Map<string, { goals: number; scorers: Map<number, number>; games: Set<number> }>();
@@ -39,7 +40,13 @@ export default function Nations() {
                 <div className="meter"><i style={{ width: `${(r.goals / max) * 100}%` }} /></div>
                 <small>{r.scorers} scorers · {((r.goals / total) * 100).toFixed(1)}%</small>
               </div>
-              <div className="nation-top">{r.top && <><Face id={r.top[0]} size={32} /><small>{players[r.top[0]]?.n} ({r.top[1]})</small></>}</div>
+              <div className="nation-top">{r.top && (
+                <span role="link" tabIndex={0} title={players[r.top[0]]?.n}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/player/${r.top[0]}`); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); navigate(`/player/${r.top[0]}`); } }}>
+                  <Face id={r.top[0]} size={32} /><small>{players[r.top[0]]?.n} ({r.top[1]})</small>
+                </span>
+              )}</div>
               <span className="nation-goals">{r.goals}</span>
             </Link>
           ))}
