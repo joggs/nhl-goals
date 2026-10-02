@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Goal } from "../../shared/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useData } from "../lib/data";
 import { flag } from "../lib/flags";
@@ -31,18 +31,30 @@ export function ClipPlayer({ clip, pageUrl }: { clip: number; pageUrl?: string }
 
 /** Large centred player for a goal clip. Closes on backdrop click, the ✕ button or Escape. */
 export function ClipModal({ goal, onClose }: { goal: Goal; onClose: () => void }) {
+  // Closing must never let the same tap/click reach the page underneath (it would open another clip),
+  // so for a moment after closing any click in the document is swallowed.
+  const down = useRef<boolean | null>(null); // did the press start on the backdrop? (null = touch, no mousedown)
+  const close = () => {
+    const swallow = (e: Event) => { e.stopPropagation(); e.preventDefault(); };
+    window.addEventListener("click", swallow, true);
+    window.setTimeout(() => window.removeEventListener("click", swallow, true), 450);
+    onClose();
+  };
   useEffect(() => {
-    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const key = (e: KeyboardEvent) => e.key === "Escape" && close();
     document.addEventListener("keydown", key);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", key); document.body.style.overflow = prev; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose]);
   if (!goal.clip) return null;
   return createPortal(
-    <div className="modal-back" onClick={(e) => { e.stopPropagation(); onClose(); }} role="dialog" aria-modal="true" aria-label="Goal video">
+    <div className="modal-back" role="dialog" aria-modal="true" aria-label="Goal video"
+      onMouseDown={(e) => { down.current = e.target === e.currentTarget; }}
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); const ok = down.current !== false && e.target === e.currentTarget; down.current = null; if (ok) close(); }}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-x" onClick={onClose} aria-label="Close">✕</button>
+        <button className="modal-x" onClick={close} aria-label="Close">✕</button>
         <ClipPlayer clip={goal.clip} pageUrl={goal.clipUrl} />
         <p className="modal-cap">{goal.text}</p>
         {goal.clipUrl && <a className="modal-link" href={goal.clipUrl} target="_blank" rel="noreferrer">NHL.com ↗</a>}
