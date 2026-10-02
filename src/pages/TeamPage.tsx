@@ -12,7 +12,7 @@ import { fmtDate, ordinal } from "../lib/util";
 
 export default function TeamPage() {
   const { abbrev = "" } = useParams();
-  const { teams, standings, goals, games, players, manifest, season } = useData();
+  const { teams, standings, goals, games, players, season } = useData();
   const { teams: favs } = useFavorites();
   const theme = useTheme();
   const { gameById } = useData();
@@ -25,7 +25,6 @@ export default function TeamPage() {
   const edge = useEdge(season, "regular")?.teams[abbrev];
   const team = teams.find((t) => t.abbrev === abbrev);
   const r = standings.find((s) => s.abbrev === abbrev);
-  const live = season === manifest.currentSeason;
   const d = useMemo(() => {
     const gf = goals.filter((g) => g.team === abbrev && !g.ownGoal);
     const ga = goals.filter((g) => g.against === abbrev && !g.ownGoal);
@@ -51,8 +50,8 @@ export default function TeamPage() {
         <TeamLogo abbrev={abbrev} size={84} />
         <div className="team-hero-main">
           <h1>{team.name}</h1>
-          <p className="muted">{team.division} Division · {team.conference} Conference{live && r ? ` · ${ordinal(r.divRank)} in division${r.wc > 0 && r.wc <= 2 ? ` · wild card ${r.wc}` : ""}` : ""}</p>
-          {live && r && <p><b>{r.w}-{r.l}-{r.otl}</b> · <b>{r.pts}</b> pts · GF {r.gf} · GA {r.ga} · L10 {r.l10}{r.streak && <> · streak <b>{r.streak}</b></>}</p>}
+          <p className="muted">{team.division} Division · {team.conference} Conference{r ? ` · ${ordinal(r.divRank)} in division${r.wc > 0 && r.wc <= 2 ? ` · wild card ${r.wc}` : ""}` : ""}</p>
+          {r && <p><b>{r.w}-{r.l}-{r.otl}</b> · <b>{r.pts}</b> pts · GF {r.gf} · GA {r.ga} · L10 {r.l10}{r.streak && <> · streak <b>{r.streak}</b></>}</p>}
         </div>
         <div className="team-hero-tools">
           <StarButton abbrev={abbrev} />

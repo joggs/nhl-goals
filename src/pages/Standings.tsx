@@ -35,11 +35,11 @@ function DivisionTable({ name, rows }: { name: string; rows: StandingRow[] }) {
 }
 
 export default function Standings() {
-  const { standings, manifest } = useData();
-  const season = manifest.seasons.find((s) => s.id === manifest.currentSeason)?.label;
+  const { standings, manifest, season: id } = useData();
+  const season = manifest.seasons.find((s) => s.id === id)?.label;
   return (
     <section>
-      <div className="row between"><h1>Standings</h1><span className="muted">{season} · top three per division make the playoffs, plus two wild cards per conference</span></div>
+      <div className="row between"><h1>Standings</h1><span className="muted">{season}{id === manifest.currentSeason ? "" : " · final regular-season table"} · top three per division make the playoffs, plus two wild cards per conference</span></div>
       {DIVISIONS.map(([conf, divs]) => (
         <div key={conf}>
           <h2>{conf} Conference</h2>

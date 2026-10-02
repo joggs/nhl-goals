@@ -33,7 +33,8 @@ export const useData = () => {
 const seasonCache = new Map<number, Game[]>();
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [boot, setBoot] = useState<{ manifest: Manifest; teams: TeamInfo[]; standings: StandingRow[]; players: Record<string, PlayerInfo> } | null>(null);
+  const [boot, setBoot] = useState<{ manifest: Manifest; teams: TeamInfo[]; players: Record<string, PlayerInfo> } | null>(null);
+  const [standings, setStandings] = useState<StandingRow[]>([]);
   const [error, setError] = useState<string>();
   const [season, setSeasonState] = useState<number>(0);
   const [games, setGames] = useState<Game[]>([]);
@@ -42,9 +43,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     Promise.all([
       getJson<Manifest>("manifest.json"), getJson<TeamInfo[]>("teams.json"),
-      getJson<StandingRow[]>("standings.json"), getJson<Record<string, PlayerInfo>>("players.json"),
-    ]).then(([manifest, teams, standings, players]) => {
-      setBoot({ manifest, teams, standings, players });
+      getJson<Record<string, PlayerInfo>>("players.json"),
+    ]).then(([manifest, teams, players]) => {
+      setBoot({ manifest, teams, players });
       const saved = Number(localStorage.getItem("season"));
       setSeasonState(manifest.seasons.some((s) => s.id === saved) ? saved : manifest.currentSeason);
     }).catch((e) => setError(String(e)));
@@ -53,6 +54,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!season) return;
     setLoading(true);
+    getJson<StandingRow[]>(`standings-${season}.json`).catch(() => [] as StandingRow[]).then((rows) => setStandings(rows));
     const hit = seasonCache.get(season);
     if (hit) { setGames(hit); setLoading(false); return; }
     getJson<Game[]>(`season-${season}.json`).then((g) => { seasonCache.set(season, g); setGames(g); setLoading(false); });
@@ -65,10 +67,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const played = games.filter((g) => g.state !== "FUT" && g.state !== "PRE" && g.date <= today).map((g) => g.date);
     const anchor = played.length ? played.reduce((a, b) => (a > b ? a : b)) : today;
     return {
-      ...boot, games, goals, gameById: new Map(games.map((g) => [g.id, g])), season, anchor, loading,
+      ...boot, standings, games, goals, gameById: new Map(games.map((g) => [g.id, g])), season, anchor, loading,
       setSeason: (s) => { localStorage.setItem("season", String(s)); setSeasonState(s); },
     };
-  }, [boot, games, season, loading]);
+  }, [boot, standings, games, season, loading]);
 
   if (error) return <div className="center-msg">Could not load data. Run <code>npm run data</code> first.<br /><small>{error}</small></div>;
   if (!value) return <div className="center-msg"><div className="spinner" /></div>;

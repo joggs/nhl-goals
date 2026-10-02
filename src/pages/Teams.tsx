@@ -10,10 +10,9 @@ import { teamColor } from "../lib/teamColors";
 const CONFERENCES = [["Eastern", ["Atlantic", "Metropolitan"]], ["Western", ["Central", "Pacific"]]] as const;
 
 export default function Teams() {
-  const { standings, teams, goals, manifest, season } = useData();
+  const { standings, teams, goals } = useData();
   const { teams: favs } = useFavorites();
   const sp = useSpoilers();
-  const live = season === manifest.currentSeason;
   const stats = useMemo(() => {
     const m = new Map<string, { gf: number; pp: number; scorers: Map<number, { name: string; n: number }> }>();
     for (const g of goals) {
@@ -38,7 +37,7 @@ export default function Teams() {
               <h3>{d}</h3>
               <div className="team-grid">
                 {teams.filter((t) => t.division === d)
-                  .sort((a, b) => (sp.pagesOk && live ? (row(a.abbrev)?.divRank ?? 9) - (row(b.abbrev)?.divRank ?? 9) : a.name.localeCompare(b.name)))
+                  .sort((a, b) => (sp.pagesOk ? (row(a.abbrev)?.divRank ?? 9) - (row(b.abbrev)?.divRank ?? 9) : a.name.localeCompare(b.name)))
                   .map((t) => {
                     const r = row(t.abbrev), st = stats.get(t.abbrev);
                     const top = st && [...st.scorers.entries()].sort((x, y) => y[1].n - x[1].n)[0];
@@ -49,7 +48,7 @@ export default function Teams() {
                           <b>{t.name}</b>
                           {sp.pagesOk ? (
                             <>
-                              {live && r && <small className="muted">{r.w}-{r.l}-{r.otl} · {r.pts} pts · {ordinal(r.divRank)} in {t.division}</small>}
+                              {r && <small className="muted">{r.w}-{r.l}-{r.otl} · {r.pts} pts · {ordinal(r.divRank)} in {t.division}</small>}
                               {top && <small className="team-top"><Face id={top[0]} size={20} /> {top[1].name} <b>{top[1].n}</b></small>}
                             </>
                           ) : <small className="muted">Results hidden</small>}

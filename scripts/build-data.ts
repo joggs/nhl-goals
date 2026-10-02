@@ -58,6 +58,7 @@ async function seasonGames(season: number): Promise<SchedGame[]> {
 const nm = (p: any) => `${p.firstName?.default ?? ""} ${p.lastName?.default ?? ""}`.trim();
 
 const teamIds = new Map<string, number>();
+const regularSeasonEnd = new Map<number, string>();
 const SHOT_KIND: Record<string, number> = { "shot-on-goal": 0, "missed-shot": 1, "blocked-shot": 2, goal: 3 };
 
 /** Appends every shot attempt of one game (shootouts excluded) to the season's flat shot list. */
@@ -332,6 +333,7 @@ async function main() {
     })).filter((g): g is Game => !!g);
     games.sort((a, b) => a.start.localeCompare(b.start));
     await writeFile(`${OUT}/shots-${season}.json`, JSON.stringify(shots));
+    regularSeasonEnd.set(season, games.filter((g) => g.type === 2 && g.finished).map((g) => g.date).sort().at(-1) ?? "");
     await writeFile(`${OUT}/season-${season}.json`, JSON.stringify(games));
     const label = `${String(season).slice(0, 4)}–${String(season).slice(6)}`;
     manifest.seasons.push({ id: season, label, games: games.length, goals: games.reduce((a, g) => a + g.goals.length, 0) });
@@ -356,14 +358,22 @@ async function main() {
   } catch (e) { console.warn("country list failed", (e as Error).message); }
 
   console.log("Standings + teams…");
-  const st = await web("/standings/now");
-  const rows: StandingRow[] = (st.standings ?? []).map((r: any) => ({
+  const mapRows = (st: any): StandingRow[] => (st.standings ?? []).map((r: any) => ({
     abbrev: r.teamAbbrev.default, name: r.teamName.default, division: r.divisionName, conference: r.conferenceName,
     gp: r.gamesPlayed, w: r.wins, l: r.losses, otl: r.otLosses, pts: r.points, gf: r.goalFor, ga: r.goalAgainst,
     streak: r.streakCode ? `${r.streakCode}${r.streakCount}` : undefined,
     divRank: r.divisionSequence, wc: r.wildcardSequence, row: r.regulationPlusOtWins, ptsPct: r.pointPctg,
     l10: `${r.l10Wins}-${r.l10Losses}-${r.l10OtLosses}`,
   }));
+  const rows = mapRows(await web("/standings/now"));
+  // Earlier seasons: the table as it stood after the last regular-season game.
+  for (const season of seasons) {
+    if (season === cur) { await writeFile(`${OUT}/standings-${season}.json`, JSON.stringify(rows)); continue; }
+    try {
+      const day = regularSeasonEnd.get(season);
+      if (day) await writeFile(`${OUT}/standings-${season}.json`, JSON.stringify(mapRows(await cached(`.cache/standings-${day}.json`, true, () => web(`/standings/${day}`)))));
+    } catch (e) { console.warn(`  standings ${season} failed:`, (e as Error).message); }
+  }
   const teams: TeamInfo[] = rows.map((r) => ({ abbrev: r.abbrev, name: r.name, division: r.division, conference: r.conference }));
   await writeFile(`${OUT}/standings.json`, JSON.stringify(rows));
   await writeFile(`${OUT}/teams.json`, JSON.stringify(teams));
