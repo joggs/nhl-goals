@@ -5,6 +5,7 @@ import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus } from "../lib/util";
 import { Chip, ClipPlayer, Face, GoalCard, TeamLogo } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
+import { gameVars } from "../lib/teamColors";
 
 export default function GamePage() {
   const { id } = useParams();
@@ -19,7 +20,7 @@ export default function GamePage() {
   return (
     <section>
       <Link to={`/?date=${g.date}`} className="back">‹ {fmtDate(g.date)}</Link>
-      <div className="scoreboard">
+      <div className="scoreboard" style={gameVars(g.away.abbrev, g.home.abbrev)}>
         {[g.away, g.home].map((t, i) => (
           <div key={t.abbrev} className="sb-team">
             <TeamLogo abbrev={t.abbrev} size={72} /><b>{t.name}</b>

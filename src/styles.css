@@ -7,7 +7,7 @@
 * { box-sizing: border-box; }
 html { background: var(--bg); }
 body { margin: 0; font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text);
-  background: radial-gradient(1200px 500px at 80% -10%, #1a2347 0%, transparent 60%), radial-gradient(900px 400px at 0% 0%, #2a1530 0%, transparent 55%), var(--bg);
+  background: radial-gradient(1200px 500px at 80% -10%, var(--bg-a, #1a2347) 0%, transparent 60%), radial-gradient(900px 400px at 0% 0%, var(--bg-b, #2a1530) 0%, transparent 55%), var(--bg);
   min-height: 100vh; }
 a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
 h1 { font-size: 1.6rem; margin: .4rem 0 .6rem; letter-spacing: -.02em; } h2 { font-size: 1.15rem; margin: 1.6rem 0 .5rem; } h3 { font-size: .95rem; margin: 1rem 0 .4rem; }
@@ -27,12 +27,12 @@ footer { text-align: center; color: var(--muted); font-size: .78rem; padding: 2r
 .top nav { display: flex; gap: .15rem; overflow-x: auto; flex: 1; }
 .top nav a { color: var(--muted); padding: .35rem .7rem; border-radius: 999px; font-weight: 500; white-space: nowrap; }
 .top nav a:hover { color: var(--text); text-decoration: none; background: var(--card); }
-.top nav a.on { color: #fff; background: linear-gradient(135deg, var(--accent2), #3a86ff); }
+.top nav a.on { color: #fff; background: linear-gradient(135deg, var(--accent2), var(--accent)); }
 .top-right { display: flex; align-items: center; gap: .6rem; } .favs { display: flex; gap: 4px; }
 
 .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .5rem 0; } .row.between { justify-content: space-between; }
 .chip { background: var(--card); color: var(--text); border: 1px solid var(--line); padding: .3rem .75rem; border-radius: 999px; font: inherit; font-size: .85rem; cursor: pointer; display: inline-block; }
-.chip:hover { border-color: var(--accent); text-decoration: none; } .chip.on { background: linear-gradient(135deg, var(--accent2), #3a86ff); border-color: transparent; color: #fff; }
+.chip:hover { border-color: var(--accent); text-decoration: none; } .chip.on { background: linear-gradient(135deg, var(--accent2), var(--accent)); border-color: transparent; color: #fff; }
 .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; padding: 0; }
 select, input { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: .4rem .6rem; font: inherit; font-size: .88rem; }
 input[type=date] { color-scheme: dark; } .search { min-width: 180px; } .sep { flex: 0 0 1px; height: 20px; background: var(--line); }
@@ -47,7 +47,7 @@ input[type=date] { color-scheme: dark; } .search { min-width: 180px; } .sep { fl
 .datenav > button { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 10px; width: 34px; height: 54px; font-size: 1.3rem; cursor: pointer; }
 .strip { display: flex; gap: .3rem; flex: 1; overflow-x: auto; }
 .day { flex: 1 0 58px; display: grid; place-items: center; background: var(--card); color: var(--muted); border: 1px solid var(--line); border-radius: 12px; padding: .25rem 0; cursor: pointer; font: inherit; line-height: 1.15; }
-.day b { font-size: 1.1rem; color: var(--text); } .day.empty { opacity: .45; } .day.on { background: linear-gradient(160deg, var(--accent2), #3a86ff); color: #dbe5ff; border-color: transparent; opacity: 1; } .day.on b { color: #fff; }
+.day b { font-size: 1.1rem; color: var(--text); } .day.empty { opacity: .45; } .day.on { background: linear-gradient(160deg, var(--accent2), var(--accent)); color: #dbe5ff; border-color: transparent; opacity: 1; } .day.on b { color: #fff; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: .8rem; }
 .game { display: block; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: .8rem .9rem; color: var(--text); transition: transform .12s, border-color .12s; }
@@ -113,3 +113,11 @@ input[type=date] { color-scheme: dark; } .search { min-width: 180px; } .sep { fl
 .tv.mini { position: static; width: 20px; height: 18px; flex: none; margin-left: auto; border-radius: 5px; }
 video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10px; background: #000; aspect-ratio: 16/9; }
 .video.loading { display: grid; place-items: center; animation: pulse2 1.2s ease-in-out infinite; } @keyframes pulse2 { 50% { opacity: .5; } }
+
+/* Team colours */
+.game { position: relative; overflow: hidden; background: linear-gradient(115deg, color-mix(in srgb, var(--ta, #4cc9f0) 20%, var(--card)) 0%, var(--card) 48%, color-mix(in srgb, var(--th, #7c5cff) 20%, var(--card)) 100%); }
+.game::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--ta, var(--line)), var(--th, var(--line))); }
+.scoreboard { background: linear-gradient(110deg, color-mix(in srgb, var(--ta, #4cc9f0) 34%, var(--card)), var(--card) 50%, color-mix(in srgb, var(--th, #7c5cff) 34%, var(--card))); }
+.goal { border-left: 4px solid var(--tc, var(--line)); background: linear-gradient(90deg, color-mix(in srgb, var(--tc, transparent) 12%, var(--card)), var(--card) 40%); }
+.goal.hot { border-color: var(--gold); }
+.trow { border-left: 3px solid var(--tc, transparent); padding-left: .3rem; } .chip.theme { padding: .05rem .4rem; }

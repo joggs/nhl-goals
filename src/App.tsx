@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { HashRouter, NavLink, Route, Routes, Link } from "react-router-dom";
 import { DataProvider, useData } from "./lib/data";
-import { useFavorites } from "./lib/favorites";
+import { useFavorites, useTheme } from "./lib/favorites";
+import { teamColor } from "./lib/teamColors";
 import { TeamLogo } from "./components/ui";
 import Scores from "./pages/Scores";
 import GamePage from "./pages/GamePage";
@@ -15,6 +17,17 @@ function Shell() {
   const { manifest, season, setSeason } = useData();
   const { teams } = useFavorites();
   const sp = useSpoilers();
+  const theme = useTheme();
+  useEffect(() => {
+    const r = document.documentElement.style;
+    const vars = ["--accent", "--accent2", "--bg-a", "--bg-b"];
+    if (!theme.team) { vars.forEach((v) => r.removeProperty(v)); return; }
+    const c = teamColor(theme.team);
+    r.setProperty("--accent", c.vivid);
+    r.setProperty("--accent2", c.vivid2);
+    r.setProperty("--bg-a", `color-mix(in srgb, ${c.vivid} 26%, #0b0e14)`);
+    r.setProperty("--bg-b", `color-mix(in srgb, ${c.vivid2} 20%, #0b0e14)`);
+  }, [theme.team]);
   const nav = [["/", "Scores"], ["/goals", "Goals"], ["/highlights", "Highlights"], ["/players", "Players"], ["/nations", "Nations"], ["/teams", "Teams"]] as const;
   return (
     <>

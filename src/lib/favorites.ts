@@ -17,3 +17,18 @@ export function useFavorites() {
   };
   return { teams, toggle, has: (a: string) => teams.includes(a) };
 }
+
+const THEME = "themeTeam";
+let themeSnap = localStorage.getItem(THEME) ?? "";
+const themeSubs = new Set<() => void>();
+export function useTheme() {
+  const t = useSyncExternalStore((cb) => { themeSubs.add(cb); return () => themeSubs.delete(cb); }, () => themeSnap);
+  return {
+    team: t || undefined,
+    set: (abbrev?: string) => {
+      themeSnap = abbrev ?? "";
+      if (abbrev) localStorage.setItem(THEME, abbrev); else localStorage.removeItem(THEME);
+      themeSubs.forEach((f) => f());
+    },
+  };
+}

@@ -5,6 +5,7 @@ import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
 import { Chip, ClipPlayer, Flag, TeamLogo, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
+import { gameVars } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
 
 function GameCard({ g }: { g: Game }) {
@@ -24,7 +25,7 @@ function GameCard({ g }: { g: Game }) {
     </div>
   );
   return (
-    <Link to={`/game/${g.id}`} className={`game${g.state === "LIVE" || g.state === "CRIT" ? " live" : ""}`}>
+    <Link to={`/game/${g.id}`} style={gameVars(g.away.abbrev, g.home.abbrev)} className={`game${g.state === "LIVE" || g.state === "CRIT" ? " live" : ""}`}>
       <div className="game-head"><span className="status">{hid ? "Played" : gameStatus(g)}</span><span>{g.type === 3 ? "Playoffs" : g.venue}</span></div>
       <Row t={g.away} win={awayWon} /><Row t={g.home} win={homeWon} />
       {hid && <button className="reveal-mini" onClick={(e) => { e.preventDefault(); sp.reveal([g.id]); }}>Reveal result</button>}

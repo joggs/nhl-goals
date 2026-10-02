@@ -7,6 +7,7 @@ import { headshot, logo, periodLabel } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
 import { useSpoilers } from "../lib/spoilers";
 import { clipSource } from "../lib/clip";
+import { teamColor } from "../lib/teamColors";
 
 export const TvIcon = () => (
   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -83,7 +84,7 @@ export function GoalCard({ goal, showGame = true, compact = false }: { goal: Goa
   }
   const tags = goal.tags.map(tagLabel).filter(Boolean);
   return (
-    <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}`}>
+    <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}`} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
       <Link to={`/player/${goal.scorer.id}`} className="goal-face"><Face id={goal.scorer.id} size={compact ? 44 : 56} /><TeamLogo abbrev={goal.team} size={18} /></Link>
       <div className="goal-body">
         {goal.clip && (
