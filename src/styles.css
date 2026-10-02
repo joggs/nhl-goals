@@ -191,3 +191,5 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .edge-teams td { white-space: nowrap; } .edge-teams small { font-size: .68rem; }
 
 .heat rect { fill: var(--accent); shape-rendering: crispEdges; } .rink-goal { stroke-width: .15; fill-opacity: .75; }
+
+.versus .hot { fill: #ff7a45; } .versus .cold { fill: #4c8dff; } .dot-hot { background: #ff7a45; } .dot-cold { background: #4c8dff; }

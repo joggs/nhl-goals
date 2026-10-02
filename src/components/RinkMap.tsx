@@ -76,3 +76,46 @@ export function Heat({ points }: { points: { x: number; y: number }[] }) {
     </g>
   );
 }
+
+const DCELL = 3, DSIGMA = 1.3;
+const DW = Math.ceil(100 / DCELL), DH = Math.ceil(85 / DCELL);
+
+/** Gaussian-smoothed counts per cell over the offensive half. */
+function grid(points: { x: number; y: number }[]): Float32Array {
+  const g = new Float32Array(DW * DH), r = Math.ceil(DSIGMA * 2.5);
+  for (const p of points) {
+    const cx = p.x / DCELL, cy = (p.y + 42.5) / DCELL;
+    for (let j = Math.max(0, Math.floor(cy) - r); j <= Math.min(DH - 1, Math.floor(cy) + r); j++)
+      for (let i = Math.max(0, Math.floor(cx) - r); i <= Math.min(DW - 1, Math.floor(cx) + r); i++)
+        g[j * DW + i] += Math.exp(-((i + 0.5 - cx) ** 2 + (j + 0.5 - cy) ** 2) / (2 * DSIGMA * DSIGMA));
+  }
+  return g;
+}
+
+/**
+ * Where `points` are taken from more (red) or less (blue) often than `baseline`, as a share of each set's own total.
+ * Shows a style rather than volume, so a team that shoots from the point shows up even if most of its shots are in the slot.
+ */
+export function Versus({ points, baseline }: { points: { x: number; y: number }[]; baseline: { x: number; y: number }[] }) {
+  const base = useMemo(() => grid(baseline), [baseline]);
+  const cells = useMemo(() => {
+    const a = grid(points);
+    const sa = a.reduce((x, y) => x + y, 0) || 1, sb = base.reduce((x, y) => x + y, 0) || 1;
+    const diff = Array.from(a, (v, i) => v / sa - base[i] / sb);
+    const mags = diff.map(Math.abs).filter((v) => v > 0).sort((x, y) => x - y);
+    const scale = mags.length ? mags[Math.floor(mags.length * 0.97)] : 1;
+    const out: { x: number; y: number; o: number; hot: boolean }[] = [];
+    diff.forEach((d, k) => {
+      if (a[k] < 0.4) return; // too few shots here to say anything
+      const o = Math.min(1, Math.abs(d) / scale);
+      if (o > 0.12) out.push({ x: (k % DW) * DCELL, y: Math.floor(k / DW) * DCELL, o: 0.15 + o * 0.7, hot: d > 0 });
+    });
+    return out;
+  }, [points, base]);
+  return (
+    <g className="versus" clipPath="url(#ice-clip)">
+      <defs><clipPath id="ice-clip"><path d="M0 0H72a28 28 0 0 1 28 28V57a28 28 0 0 1-28 28H0Z" /></clipPath></defs>
+      {cells.map((c, i) => <rect key={i} x={c.x} y={c.y} width={DCELL} height={DCELL} rx="0.6" fillOpacity={c.o} className={c.hot ? "hot" : "cold"} />)}
+    </g>
+  );
+}
