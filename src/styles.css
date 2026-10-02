@@ -199,3 +199,7 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 
 .zones { display: grid; gap: .3rem; margin: .6rem 0 .2rem; } .zone-row { display: grid; grid-template-columns: 9.5ch 1fr 4ch 3ch; align-items: center; gap: .4rem; font-size: .8rem; } .zone-bar { position: relative; height: 8px; background: color-mix(in srgb, var(--muted) 18%, transparent); border-radius: 4px; } .zone-bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 4px; } .zone-bar u { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); opacity: .8; text-decoration: none; }
 .zone-row b { text-align: right; font-variant-numeric: tabular-nums; } .zone-row small.up { color: #ff7a45; } .zone-row small.down { color: #4c8dff; }
+
+.game-map { position: relative; } .map-tip { position: absolute; z-index: 5; transform: translate(12px, -110%); pointer-events: none; display: grid; gap: .1rem; min-width: 11rem; max-width: 16rem; padding: .45rem .6rem; font-size: .76rem; background: var(--card2, #151a24); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.5); } .map-tip span { color: var(--muted); }
+.map-tip.flip { transform: translate(calc(-100% - 12px), -110%); }
+.shot-0, .shot-1, .shot-2 { stroke: transparent; stroke-width: 3; paint-order: stroke; pointer-events: all; } .game-map .shot:hover { fill-opacity: 1; }

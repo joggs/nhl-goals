@@ -120,8 +120,9 @@ export type EdgeTeam = Record<EdgeTeamMetric, EdgeStat>;
 export interface EdgeData { season: number; boards: Record<EdgeBoardId, Record<EdgePos, EdgeEntry[]>>; teams: Record<string, EdgeTeam> }
 
 /**
- * Every shot attempt of a season, flattened to save space. Seven numbers per shot:
- * [game index, player id, team index, x, y, kind, strength] where x/y are normalised (attacking net at x=+89),
- * kind is 0 saved, 1 missed, 2 blocked, 3 goal and strength is 0 even, 1 power play, 2 short-handed.
+ * Every shot attempt of a season, flattened to save space. Ten numbers per shot:
+ * [game index, player id, team index, x, y, kind, strength, period, seconds into period, shot type index (-1 = unknown)]
+ * where x/y are normalised (attacking net at x=+89), kind is 0 saved, 1 missed, 2 blocked, 3 goal and strength is
+ * 0 even, 1 power play, 2 short-handed. Period 4+ is overtime.
  */
-export interface ShotFile { season: number; teams: string[]; games: number[]; shots: number[] }
+export interface ShotFile { season: number; teams: string[]; games: number[]; types: string[]; shots: number[] }

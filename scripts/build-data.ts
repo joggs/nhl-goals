@@ -77,7 +77,10 @@ function collectShots(gameId: number, plays: any[], away: any, home: any, roster
     let ti = sink.teams.indexOf(owner.abbrev);
     if (ti < 0) ti = sink.teams.push(owner.abbrev) - 1;
     const st = parseSituation(p.situationCode, ownerIsHome).strength;
-    sink.shots.push(gi, pid, ti, Math.round(pos.x), Math.round(pos.y), kind, st === "PP" ? 1 : st === "SH" ? 2 : 0);
+    const [mm, ss] = String(p.timeInPeriod ?? "0:0").split(":").map(Number);
+    let tyi = d.shotType ? sink.types.indexOf(d.shotType) : -1;
+    if (d.shotType && tyi < 0) tyi = sink.types.push(d.shotType) - 1;
+    sink.shots.push(gi, pid, ti, Math.round(pos.x), Math.round(pos.y), kind, st === "PP" ? 1 : st === "SH" ? 2 : 0, p.periodDescriptor?.number ?? 1, mm * 60 + ss, tyi);
   }
 }
 
@@ -325,7 +328,7 @@ async function main() {
     const upcoming = sched.filter((g) => g.date > new Date(Date.now() + 36 * 3600e3).toISOString().slice(0, 10));
     const todo = sched.filter((g) => !upcoming.includes(g));
     console.log(`  ${todo.length} games to read (${upcoming.length} skipped as too far ahead), today=${todayIso}`);
-    const shots: ShotFile = { season, teams: [], games: [], shots: [] };
+    const shots: ShotFile = { season, teams: [], games: [], types: [], shots: [] };
     let done = 0;
     const games = (await pool(todo, 8, async (g) => {
       try { const r = await loadGame(g, players, shots); if (++done % 100 === 0) console.log(`  ${done}/${todo.length}`); return r; }
