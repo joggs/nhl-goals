@@ -35,7 +35,11 @@ function GameCard({ g }: { g: Game }) {
             <li key={x.id}>
               <button className="goal-line" disabled={!x.clip} title={x.clip ? "Watch the goal" : undefined}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}>
-                <TeamLogo abbrev={x.team} size={16} /> <b>{surname(x.scorer.name)}</b> <small>{x.away}–{x.home} · {x.time}{x.strength !== "EV" ? ` · ${x.strength}` : ""}{x.emptyNet ? " · EN" : ""}</small>
+                <TeamLogo abbrev={x.team} size={16} />
+                <b className="c-name">{surname(x.scorer.name)}</b>
+                <small className="c-score">{x.away}–{x.home}</small>
+                <small className="c-time">{x.time}</small>
+                <small className="c-tag">{x.emptyNet ? "EN" : x.strength !== "EV" ? x.strength : ""}</small>
               </button>
               <Flag code={players[x.scorer.id]?.nat} />
               {x.clip && (
