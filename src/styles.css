@@ -115,10 +115,9 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .video.loading { display: grid; place-items: center; animation: pulse2 1.2s ease-in-out infinite; } @keyframes pulse2 { 50% { opacity: .5; } }
 
 /* Team colours */
-.game { position: relative; overflow: hidden; --seam: rgba(255,255,255,.22);
-  background: linear-gradient(112deg, color-mix(in srgb, var(--ta, #4cc9f0) 34%, var(--card)) 0%, color-mix(in srgb, var(--ta, #4cc9f0) 7%, var(--card)) 49.4%, var(--seam) 49.4%, var(--seam) 50.6%, color-mix(in srgb, var(--th, #7c5cff) 7%, var(--card)) 50.6%, color-mix(in srgb, var(--th, #7c5cff) 34%, var(--card)) 100%); }
-.game::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, var(--ta, var(--line)) 0 50%, var(--th, var(--line)) 50% 100%); }
-.scoreboard { --seam: rgba(255,255,255,.25); background: linear-gradient(105deg, color-mix(in srgb, var(--ta, #4cc9f0) 42%, var(--card)) 0%, color-mix(in srgb, var(--ta, #4cc9f0) 8%, var(--card)) 49.6%, var(--seam) 49.6%, var(--seam) 50.4%, color-mix(in srgb, var(--th, #7c5cff) 8%, var(--card)) 50.4%, color-mix(in srgb, var(--th, #7c5cff) 42%, var(--card)) 100%); }
+.game { position: relative; overflow: hidden;
+  background: linear-gradient(112deg, color-mix(in srgb, var(--ta, #4cc9f0) 32%, var(--card)) 0%, color-mix(in srgb, var(--ta, #4cc9f0) 8%, var(--card)) 40%, color-mix(in srgb, var(--th, #7c5cff) 8%, var(--card)) 60%, color-mix(in srgb, var(--th, #7c5cff) 32%, var(--card)) 100%); }
+.scoreboard { background: linear-gradient(105deg, color-mix(in srgb, var(--ta, #4cc9f0) 42%, var(--card)) 0%, color-mix(in srgb, var(--ta, #4cc9f0) 8%, var(--card)) 42%, color-mix(in srgb, var(--th, #7c5cff) 8%, var(--card)) 58%, color-mix(in srgb, var(--th, #7c5cff) 42%, var(--card)) 100%); }
 .goal { border-left: 4px solid var(--tc, var(--line)); background: linear-gradient(90deg, color-mix(in srgb, var(--tc, transparent) 12%, var(--card)), var(--card) 40%); }
 .goal.hot { border-color: var(--gold); }
 .trow { border-left: 3px solid var(--tc, transparent); padding-left: .3rem; } .chip.theme { padding: .05rem .4rem; }
