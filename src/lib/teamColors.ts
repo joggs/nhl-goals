@@ -1,14 +1,39 @@
-// Official-ish primary/secondary team colours (from public brand guides, hand-entered).
+// Primary/secondary team colours as hex, taken from Wikipedia's Module:Sports color/ice hockey
+// (cross-checked against TruColor's official-colour list where it covers the team).
 // `vivid()` picks/lightens one that reads well as an accent on the dark UI.
 const RAW: Record<string, [string, string]> = {
-  ANA: ["#F47A38", "#B9975B"], BOS: ["#FFB81C", "#000000"], BUF: ["#003087", "#FFB81C"], CGY: ["#D2001C", "#FAAF19"],
-  CAR: ["#CC0000", "#A2AAAD"], CHI: ["#CF0A2C", "#000000"], COL: ["#6F263D", "#236192"], CBJ: ["#002654", "#CE1126"],
-  DAL: ["#006847", "#8F8F8C"], DET: ["#CE1126", "#FFFFFF"], EDM: ["#041E42", "#FF4C00"], FLA: ["#C8102E", "#041E42"],
-  LAK: ["#A2AAAD", "#111111"], MIN: ["#154734", "#A6192E"], MTL: ["#AF1E2D", "#192168"], NSH: ["#FFB81C", "#041E42"],
-  NJD: ["#CE1126", "#000000"], NYI: ["#00539B", "#F47D30"], NYR: ["#0038A8", "#CE1126"], OTT: ["#C52032", "#C2912C"],
-  PHI: ["#F74902", "#000000"], PIT: ["#FCB514", "#000000"], SEA: ["#001628", "#99D9D9"], SJS: ["#006D75", "#EA7200"],
-  STL: ["#002F87", "#FCB514"], TBL: ["#002868", "#FFFFFF"], TOR: ["#00205B", "#FFFFFF"], UTA: ["#6CACE4", "#010101"],
-  VAN: ["#00205B", "#00843D"], VGK: ["#B4975A", "#333F42"], WSH: ["#C8102E", "#041E42"], WPG: ["#041E42", "#004C97"],
+  ANA: ["#CF4520", "#89734C"],
+  BOS: ["#010101", "#FFB81C"],
+  BUF: ["#003087", "#FFB81C"],
+  CGY: ["#C8102E", "#F1BE48"],
+  CAR: ["#000000", "#CC0000"],
+  CHI: ["#CE1126", "#010101"],
+  COL: ["#8A2432", "#236093"],
+  CBJ: ["#041E42", "#C8102E"],
+  DAL: ["#00823E", "#000000"],
+  DET: ["#C8102E", "#FFFFFF"],
+  EDM: ["#00205B", "#D14520"],
+  FLA: ["#C8102E", "#041E42"],
+  LAK: ["#010101", "#A2AAAD"],
+  MIN: ["#0E4431", "#AC1A2E"],
+  MTL: ["#A6192E", "#001E62"],
+  NSH: ["#FFB81C", "#041E42"],
+  NJD: ["#CC0000", "#000000"],
+  NYI: ["#003087", "#FC4C02"],
+  NYR: ["#154B94", "#C32032"],
+  OTT: ["#010101", "#C8102E"],
+  PHI: ["#D24303", "#000000"],
+  PIT: ["#000000", "#FFB81C"],
+  SEA: ["#001425", "#96D8D8"],
+  SJS: ["#00778B", "#010101"],
+  STL: ["#006AC6", "#FFB81C"],
+  TBL: ["#00205B", "#FFFFFF"],
+  TOR: ["#00205B", "#FFFFFF"],
+  UTA: ["#010101", "#7AB2E0"],
+  VAN: ["#00205B", "#046A38"],
+  VGK: ["#B9975B", "#333F48"],
+  WSH: ["#C8102E", "#041E42"],
+  WPG: ["#041E42", "#004A98"],
 };
 
 function hslOf(hex: string): [number, number, number] {
