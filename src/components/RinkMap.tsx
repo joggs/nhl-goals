@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import type { Goal } from "../../shared/types";
+import { useData } from "../lib/data";
+import { goalTip, MapTip, useMapTip } from "./MapTip";
 
 const CELL = 2;      // feet per heat cell
 const SIGMA = 1.6;   // smoothing, in cells
@@ -29,16 +31,17 @@ export function Rink({ label, children }: { label: string; children?: React.Reac
 }
 
 export function RinkMap({ goals }: { goals: Goal[] }) {
+  const { gameById } = useData();
+  const { tip, at, hide } = useMapTip();
   const pts = goals.filter((g) => g.x !== undefined && g.y !== undefined && !g.ownGoal);
   return (
-    <div className="rink">
+    <div className="rink tip-host">
+      <MapTip tip={tip} />
       <Rink label={`Map of ${pts.length} goals`}>
         {pts.length > DOT_LIMIT
           ? <Heat points={pts.map((g) => ({ x: g.x!, y: g.y! }))} />
           : pts.map((g) => (
-            <circle key={g.id} cx={g.x} cy={42.5 + g.y!} r="1" className={`rink-goal${g.strength === "PP" ? " pp" : ""}`}>
-              <title>{g.text}</title>
-            </circle>
+            <circle key={g.id} cx={g.x} cy={42.5 + g.y!} r="1" className={`rink-goal${g.strength === "PP" ? " pp" : ""}`} onMouseMove={at(goalTip(g, gameById.get(g.gameId), true))} onMouseLeave={hide} />
           ))}
       </Rink>
       <p className="muted rink-cap">{pts.length} goals{pts.length > DOT_LIMIT ? " · brighter = more goals" : <> · <span className="rink-key" /> power play</>}</p>

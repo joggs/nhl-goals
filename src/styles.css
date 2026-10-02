@@ -203,3 +203,4 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .game-map { position: relative; } .map-tip { position: absolute; z-index: 5; transform: translate(12px, -110%); pointer-events: none; display: grid; gap: .1rem; min-width: 11rem; max-width: 16rem; padding: .45rem .6rem; font-size: .76rem; background: var(--card2, #151a24); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.5); } .map-tip span { color: var(--muted); }
 .map-tip.flip { transform: translate(calc(-100% - 12px), -110%); }
 .shot-0, .shot-1, .shot-2 { stroke: transparent; stroke-width: 3; paint-order: stroke; pointer-events: all; } .game-map .shot:hover { fill-opacity: 1; }
+.tip-host { position: relative; }
