@@ -125,3 +125,5 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .trow { border-left: 3px solid var(--tc, transparent); padding-left: .3rem; } .chip.theme { padding: .05rem .4rem; }
 
 .goal-text.clickable { cursor: pointer; } .goal-text.clickable:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--tc, var(--accent)); text-underline-offset: 3px; }
+
+.goal.playable { cursor: pointer; } .goal.playable:hover { border-color: var(--tc, var(--accent)); } .goal.playable video { cursor: default; }

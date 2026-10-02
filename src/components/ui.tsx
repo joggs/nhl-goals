@@ -84,7 +84,7 @@ export function GoalCard({ goal, showGame = true, compact = false }: { goal: Goa
   }
   const tags = goal.tags.map(tagLabel).filter(Boolean);
   return (
-    <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}`} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
+    <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}${goal.clip ? " playable" : ""}`} onClick={(e) => { if (goal.clip && !(e.target as HTMLElement).closest("a,button,video,input")) setVideo((v) => !v); }} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
       <Link to={`/player/${goal.scorer.id}`} className="goal-face"><Face id={goal.scorer.id} size={compact ? 44 : 56} /><TeamLogo abbrev={goal.team} size={18} /></Link>
       <div className="goal-body">
         {goal.clip && (
