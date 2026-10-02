@@ -14,6 +14,7 @@ import Teams from "./pages/Teams";
 import Standings from "./pages/Standings";
 import StanleyCup from "./pages/StanleyCup";
 import Edge from "./pages/Edge";
+import TeamPage from "./pages/TeamPage";
 import { SpoilerGate, useSpoilers } from "./lib/spoilers";
 
 function Shell() {
@@ -60,6 +61,7 @@ function Shell() {
           <Route path="/stanley-cup" element={<SpoilerGate><StanleyCup /></SpoilerGate>} />
           <Route path="/edge" element={<Edge />} />
           <Route path="/teams" element={<Teams />} />
+          <Route path="/team/:abbrev" element={<SpoilerGate><TeamPage /></SpoilerGate>} />
         </Routes>
       </main>
       <footer>{sp.on && <button className="linkbtn" onClick={sp.hideAgain}>Hide all revealed results again</button>}<br />Data: unofficial NHL web API · updated {new Date(manifest.updated).toLocaleString("en-GB")} · not affiliated with the NHL</footer>
