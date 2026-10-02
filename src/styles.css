@@ -129,3 +129,6 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .goal-text.clickable { cursor: pointer; } .goal-text.clickable:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--tc, var(--accent)); text-underline-offset: 3px; }
 
 .goal.playable { cursor: pointer; } .goal.playable:hover { border-color: var(--tc, var(--accent)); } .goal.playable video { cursor: default; }
+
+.mini-goals li.period-sep { display: flex; align-items: center; gap: .5rem; margin: .1rem 0; min-height: 0; line-height: 1; color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; }
+.mini-goals li.period-sep::before, .mini-goals li.period-sep::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.38), transparent); }

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
-import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
+import { addDays, fmtDate, gameStatus, periodLabel, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
 import { Chip, ClipPlayer, Flag, TeamLogo, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
@@ -31,8 +31,10 @@ function GameCard({ g }: { g: Game }) {
       {hid && <button className="reveal-mini" onClick={(e) => { e.preventDefault(); sp.reveal([g.id]); }}>Reveal result</button>}
       {!hid && g.goals.length > 0 && (
         <ul className="mini-goals">
-          {g.goals.map((x) => (
-            <li key={x.id}>
+          {g.goals.map((x, i) => (
+            <Fragment key={x.id}>
+              {i > 0 && g.goals[i - 1].period !== x.period && <li className="period-sep" aria-hidden="true"><span>{periodLabel(x)}</span></li>}
+            <li>
               <button className="goal-line" disabled={!x.clip} title={x.clip ? "Watch the goal" : undefined}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}>
                 <TeamLogo abbrev={x.team} size={16} />
@@ -47,6 +49,7 @@ function GameCard({ g }: { g: Game }) {
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}><TvIcon /></button>
               )}
             </li>
+            </Fragment>
           ))}
         </ul>
       )}
