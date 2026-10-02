@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { PlayoffBracket, PlayoffGame, PlayoffSeries } from "../../shared/types";
 import { useData } from "../lib/data";
-import { Chip, TeamLogo } from "../components/ui";
+import { Chip, Face, Flag, TeamLogo } from "../components/ui";
+import { tally } from "./Players";
+import { useEdge } from "../lib/edge";
+import { headshot } from "../lib/util";
 
 const base = import.meta.env.BASE_URL;
 const EAST = new Set("ABCDIJM");
@@ -42,6 +45,55 @@ function GameRow({ g, series }: { g: PlayoffGame; series: PlayoffSeries }) {
   );
   void series;
   return <li>{gameById.has(g.id) ? <Link to={`/game/${g.id}`} className="g-row">{body}</Link> : <span className="g-row">{body}</span>}</li>;
+}
+
+type Leader = "points" | "goals" | "assists";
+
+/** Playoff scoring leaders, counted from the goals we already have (game ids with type 03). */
+function PlayoffLeaders({ season }: { season: number }) {
+  const { goals, players } = useData();
+  const edge = useEdge(season, "playoffs");
+  const rows = useMemo(() => tally(goals.filter((g) => String(g.gameId).slice(4, 6) === "03")), [goals]);
+  const top = (key: Leader) => [...rows].sort((a, b) => b[key] - a[key] || b.points - a.points || b.goals - a.goals).filter((r) => r[key] > 0).slice(0, 5);
+  if (rows.length === 0) return null;
+  const edgeCards = ([["speed", "⚡ Fastest skaters", (v: number) => `${v.toFixed(1)} mph`], ["shot", "🎯 Hardest shots", (v: number) => `${v.toFixed(1)} mph`]] as const)
+    .map(([id, title, fmt]) => ({ id, title, fmt, list: edge?.boards[id]?.all.slice(0, 5) ?? [] })).filter((c) => c.list.length);
+  return (
+    <>
+      <h2>Playoff leaders</h2>
+      <div className="cols edge-cols">
+        {([["points", "Points"], ["goals", "Goals"], ["assists", "Assists"]] as const).map(([key, title]) => (
+          <div key={key}>
+            <h3>{title}</h3>
+            {top(key).map((r, i) => {
+              const p = players[r.id];
+              return (
+                <Link key={r.id} to={`/player/${r.id}`} className="leader">
+                  <span className="rank">{i + 1}</span><Face id={r.id} size={28} />
+                  <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? r.id}</span>
+                  {p?.t && <TeamLogo abbrev={p.t} size={18} />}
+                  <b>{r[key]}</b>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+        {edgeCards.map((c) => (
+          <div key={c.id}>
+            <h3>{c.title}</h3>
+            {c.list.map((e, i) => (
+              <Link key={e.id} to={`/player/${e.id}`} className="leader">
+                <span className="rank">{i + 1}</span>
+                {e.h ? <img className="face" src={headshot(e.h)} width={28} height={28} alt="" loading="lazy" /> : <span className="face ph" style={{ width: 28, height: 28 }} />}
+                <span className="leader-name">{e.name}</span><TeamLogo abbrev={e.team} size={18} /><b>{c.fmt(e.value)}</b>
+              </Link>
+            ))}
+          </div>
+        ))}
+      </div>
+      <p className="muted"><Link to="/edge">More playoff Edge data →</Link></p>
+    </>
+  );
 }
 
 export default function StanleyCup() {
@@ -103,6 +155,7 @@ export default function StanleyCup() {
         </div>
       )}
       {!picked && <p className="muted">Tap a series to see its games.</p>}
+      <PlayoffLeaders season={season} />
     </section>
   );
 }

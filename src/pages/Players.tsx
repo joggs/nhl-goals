@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { SpoilerGate } from "../lib/spoilers";
 import { useData } from "../lib/data";
-import { useFilteredGoals, useGoalFilter } from "../lib/filters";
+import { rangeBounds, useFilteredGoals, useGoalFilter } from "../lib/filters";
 import { FilterBar } from "../components/FilterBar";
 import { Face, Flag, GoalCard, TeamLogo } from "../components/ui";
-import { RinkMap } from "../components/RinkMap";
+import { ShotMap } from "../components/ShotMap";
 import { fmtDate } from "../lib/util";
 
 interface Row { id: number; points: number; goals: number; assists: number; ppg: number; shg: number; gwg: number; hat: number; en: number }
@@ -124,7 +124,7 @@ export function Players() {
 export function PlayerPage() {
   const { id } = useParams();
   const pid = Number(id);
-  const { players, goals: all, loading, manifest } = useData();
+  const { players, goals: all, loading, manifest, gameById, anchor } = useData();
   const p = players[pid];
   const [f, set] = useGoalFilter({ range: "season" });
   const mine = useFilteredGoals({ ...f, player: undefined });
@@ -140,6 +140,12 @@ export function PlayerPage() {
     return { shots: count((g) => g.shotType), zones: count((g) => g.zone), vs: count((g) => g.against) };
   }, [scored]);
   void all;
+  const pick = useCallback((sh: { player: number; game: number }) => {
+    if (sh.player !== pid) return false;
+    const [a, b] = rangeBounds(f.range, anchor, f.from, f.to);
+    const d = gameById.get(sh.game)?.date;
+    return !!d && d >= a && d <= b;
+  }, [pid, f.range, f.from, f.to, anchor, gameById]);
   if (loading) return <div className="spinner" />;
   const name = p?.n ?? scored[0]?.scorer.name ?? `Player ${pid}`;
   const list = tab === "goals" ? scored : assisted;
@@ -163,7 +169,7 @@ export function PlayerPage() {
           <div><h3>Shot types</h3>{bar(stats.shots)}</div>
           <div><h3>Where from</h3>{bar(stats.zones)}</div>
           <div><h3>Against</h3>{bar(stats.vs)}</div>
-          <div><h3>Goal map</h3><RinkMap goals={scored} /></div>
+          <div><h3>Goal map</h3><ShotMap goals={scored} pick={pick} /></div>
         </div>
       )}
       <div className="row">

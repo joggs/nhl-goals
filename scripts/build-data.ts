@@ -11,7 +11,7 @@
  * Finished games are cached in .cache/ and never re-fetched.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import type { EdgeBoardId, EdgeData, EdgeEntry, EdgePos, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
+import type { EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
 import { cached, pool, stats, web } from "./lib-nhl.js";
 
@@ -57,13 +57,37 @@ async function seasonGames(season: number): Promise<SchedGame[]> {
 
 const nm = (p: any) => `${p.firstName?.default ?? ""} ${p.lastName?.default ?? ""}`.trim();
 
-async function loadGame(sg: SchedGame, players: Map<number, PlayerInfo>): Promise<Game | null> {
+const teamIds = new Map<string, number>();
+const SHOT_KIND: Record<string, number> = { "shot-on-goal": 0, "missed-shot": 1, "blocked-shot": 2, goal: 3 };
+
+/** Appends every shot attempt of one game (shootouts excluded) to the season's flat shot list. */
+function collectShots(gameId: number, plays: any[], away: any, home: any, roster: Map<number, { teamId: number }>, sink: ShotFile) {
+  const gi = sink.games.push(gameId) - 1;
+  for (const p of plays) {
+    const kind = SHOT_KIND[p.typeDescKey];
+    const d = p.details;
+    if (kind === undefined || !d || p.periodDescriptor?.periodType === "SO") continue;
+    if (typeof d.xCoord !== "number" || typeof d.yCoord !== "number" || !p.homeTeamDefendingSide) continue;
+    const pid: number | undefined = d.shootingPlayerId ?? d.scoringPlayerId;
+    if (!pid || (roster.get(pid) && roster.get(pid)!.teamId !== d.eventOwnerTeamId)) continue; // skips own goals
+    const owner = d.eventOwnerTeamId === home.id ? home : away;
+    const ownerIsHome = owner === home;
+    const pos = normalise(d.xCoord, d.yCoord, ownerIsHome, p.homeTeamDefendingSide);
+    let ti = sink.teams.indexOf(owner.abbrev);
+    if (ti < 0) ti = sink.teams.push(owner.abbrev) - 1;
+    const st = parseSituation(p.situationCode, ownerIsHome).strength;
+    sink.shots.push(gi, pid, ti, Math.round(pos.x), Math.round(pos.y), kind, st === "PP" ? 1 : st === "SH" ? 2 : 0);
+  }
+}
+
+async function loadGame(sg: SchedGame, players: Map<number, PlayerInfo>, shots: ShotFile): Promise<Game | null> {
   const landing = await cached(`.cache/landing-${sg.id}.json`, false, () => web(`/gamecenter/${sg.id}/landing`));
   const state: string = landing.gameState;
   const finished = state === "OFF" || state === "FINAL";
   const live = state === "LIVE" || state === "CRIT";
   const fut = state === "FUT" || state === "PRE";
   const away = landing.awayTeam, home = landing.homeTeam;
+  teamIds.set(away.abbrev, away.id); teamIds.set(home.abbrev, home.id);
 
   const base: Game = {
     id: sg.id, season: landing.season, type: landing.gameType, date: sg.date, start: landing.startTimeUTC,
@@ -96,6 +120,7 @@ async function loadGame(sg: SchedGame, players: Map<number, PlayerInfo>): Promis
     for (const g of per.goals ?? []) modByEvent.set(g.eventId, { mod: g.goalModifier, clipUrl: g.highlightClipSharingUrl });
 
   const plays = (pbp.plays ?? []) as any[];
+  collectShots(sg.id, plays, away, home, roster, shots);
   const goalPlays = plays.filter((p) => p.typeDescKey === "goal").sort((a, b) => a.sortOrder - b.sortOrder);
   const shootout = goalPlays.some((p) => p.periodDescriptor?.periodType === "SO");
   const regGoals = goalPlays.filter((p) => p.periodDescriptor?.periodType !== "SO");
@@ -232,39 +257,57 @@ async function loadPlayoffs(season: number): Promise<PlayoffBracket> {
 }
 
 const EDGE_POS: EdgePos[] = ["all", "F", "D"];
-const EDGE_BOARDS: Record<EdgeBoardId, { path: (pos: EdgePos, season: number) => string; read: (r: any) => Pick<EdgeEntry, "value" | "sub" | "when"> }> = {
+const EDGE_BOARDS: Record<EdgeBoardId, { path: (pos: EdgePos, season: number, gt: number) => string; read: (r: any) => Pick<EdgeEntry, "value" | "sub" | "when"> }> = {
   speed: {
-    path: (pos, season) => `/edge/skater-speed-top-10/${pos}/max/${season}/2`,
+    path: (pos, season, gt) => `/edge/skater-speed-top-10/${pos}/max/${season}/${gt}`,
     read: (r) => ({ value: r.maxSpeed.imperial, sub: `${r.burstsOver22} bursts over 22 mph`, when: overlayWhen(r.maxSpeed.overlay) }),
   },
   shot: {
-    path: (pos, season) => `/edge/skater-shot-speed-top-10/${pos}/max/${season}/2`,
+    path: (pos, season, gt) => `/edge/skater-shot-speed-top-10/${pos}/max/${season}/${gt}`,
     read: (r) => ({ value: r.hardestShot.imperial, sub: `${r.shotAttemptsOver100} over 100 mph · ${r.shotAttempts90To100} at 90–100`, when: overlayWhen(r.hardestShot.overlay) }),
   },
   distance: {
-    path: (pos, season) => `/edge/skater-distance-top-10/${pos}/all/total/${season}/2`,
+    path: (pos, season, gt) => `/edge/skater-distance-top-10/${pos}/all/total/${season}/${gt}`,
     read: (r) => ({ value: r.distanceTotal.imperial, sub: `${r.distancePer60.imperial.toFixed(1)} mi per 60 min` }),
   },
   zone: {
-    path: (pos, season) => `/edge/skater-zone-time-top-10/${pos}/all/offensive/${season}/2`,
+    path: (pos, season, gt) => `/edge/skater-zone-time-top-10/${pos}/all/offensive/${season}/${gt}`,
     read: (r) => ({ value: r.offensiveZoneTime * 100, sub: `${(r.neutralZoneTime * 100).toFixed(0)}% neutral · ${(r.defensiveZoneTime * 100).toFixed(0)}% defensive` }),
   },
 };
 const overlayWhen = (o: any) => (o?.gameDate ? `${o.gameDate} ${o.awayTeam?.abbrev} @ ${o.homeTeam?.abbrev}` : undefined);
 
 /** EDGE top-10 boards for one season. Player ids are only present in the slug ("beck-malenstyn-8479359"). */
-async function loadEdge(season: number): Promise<EdgeData> {
+async function loadEdge(season: number, gt: 2 | 3): Promise<EdgeData> {
   const boards = { speed: {}, shot: {}, distance: {}, zone: {} } as EdgeData["boards"];
   const jobs = (Object.keys(EDGE_BOARDS) as EdgeBoardId[]).flatMap((b) => EDGE_POS.map((pos) => ({ b, pos })));
   await pool(jobs, 4, async ({ b, pos }) => {
-    const rows: any[] = await web(EDGE_BOARDS[b].path(pos, season)).catch(() => []);
+    const rows: any[] = await web(EDGE_BOARDS[b].path(pos, season, gt)).catch(() => []);
     boards[b][pos] = rows.map((r): EdgeEntry => ({
       id: Number(/(\d+)$/.exec(r.player.slug)?.[1]), name: `${r.player.firstName.default} ${r.player.lastName.default}`,
       team: r.player.team?.abbrev, pos: r.player.position, h: r.player.headshot?.split("/mugs/nhl/")[1],
       ...EDGE_BOARDS[b].read(r),
     }));
   });
-  return { season, boards };
+  const teams: Record<string, EdgeTeam> = {};
+  await pool([...teamIds.entries()], 4, async ([abbrev, id]) => {
+    try {
+      const t = await web(`/edge/team-detail/${id}/${season}/${gt}`);
+      const st = (o: any, rank: number | undefined, avg?: number, scale = 1): EdgeStat => ({ value: o * scale, rank: rank ?? 0, avg: avg === undefined ? undefined : avg * scale });
+      const z = t.zoneTimeDetails ?? {}, all = (t.sogSummary ?? []).find((x: any) => x.locationCode === "all") ?? {};
+      teams[abbrev] = {
+        shotSpeed: st(t.shotSpeed.topShotSpeed.imperial, t.shotSpeed.topShotSpeed.rank, t.shotSpeed.topShotSpeed.leagueAvg?.imperial),
+        burst22: st(t.skatingSpeed.burstsOver22.value, t.skatingSpeed.burstsOver22.rank),
+        speed: st(t.skatingSpeed.speedMax.imperial, t.skatingSpeed.speedMax.rank, t.skatingSpeed.speedMax.leagueAvg?.imperial),
+        distance: st(t.distanceSkated.total.imperial, t.distanceSkated.total.rank, t.distanceSkated.total.leagueAvg?.imperial),
+        zoneOff: st(z.offensiveZonePctg, z.offensiveZoneRank, z.offensiveZoneLeagueAvg, 100),
+        zoneDef: st(z.defensiveZonePctg, z.defensiveZoneRank, z.defensiveZoneLeagueAvg, 100),
+        shots: st(all.shots, all.shotsRank, all.shotsLeagueAvg),
+        shootPct: st(all.shootingPctg, all.shootingPctgRank, all.shootingPctgLeagueAvg, 100),
+      };
+    } catch (e) { console.warn(`  team edge ${abbrev} ${season} failed: ${(e as Error).message}`); }
+  });
+  return { season, boards, teams };
 }
 
 async function main() {
@@ -281,12 +324,14 @@ async function main() {
     const upcoming = sched.filter((g) => g.date > new Date(Date.now() + 36 * 3600e3).toISOString().slice(0, 10));
     const todo = sched.filter((g) => !upcoming.includes(g));
     console.log(`  ${todo.length} games to read (${upcoming.length} skipped as too far ahead), today=${todayIso}`);
+    const shots: ShotFile = { season, teams: [], games: [], shots: [] };
     let done = 0;
     const games = (await pool(todo, 8, async (g) => {
-      try { const r = await loadGame(g, players); if (++done % 100 === 0) console.log(`  ${done}/${todo.length}`); return r; }
+      try { const r = await loadGame(g, players, shots); if (++done % 100 === 0) console.log(`  ${done}/${todo.length}`); return r; }
       catch (e) { console.warn(`  game ${g.id} failed: ${(e as Error).message}`); return null; }
     })).filter((g): g is Game => !!g);
     games.sort((a, b) => a.start.localeCompare(b.start));
+    await writeFile(`${OUT}/shots-${season}.json`, JSON.stringify(shots));
     await writeFile(`${OUT}/season-${season}.json`, JSON.stringify(games));
     const label = `${String(season).slice(0, 4)}–${String(season).slice(6)}`;
     manifest.seasons.push({ id: season, label, games: games.length, goals: games.reduce((a, g) => a + g.goals.length, 0) });
@@ -297,8 +342,9 @@ async function main() {
       console.log(`  wrote playoff bracket (${po.series.length} series)`);
     } catch (e) { console.warn(`  playoffs ${season} failed:`, (e as Error).message); }
     try {
-      await writeFile(`${OUT}/edge-${season}.json`, JSON.stringify(await loadEdge(season)));
-      console.log("  wrote EDGE leaderboards");
+      await writeFile(`${OUT}/edge-${season}.json`, JSON.stringify(await loadEdge(season, 2)));
+      await writeFile(`${OUT}/edge-${season}-po.json`, JSON.stringify(await loadEdge(season, 3)));
+      console.log("  wrote EDGE leaderboards (regular season + playoffs)");
     } catch (e) { console.warn(`  edge ${season} failed:`, (e as Error).message); }
   }
 

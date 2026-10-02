@@ -114,4 +114,14 @@ export interface EdgeEntry {
   sub?: string;     // secondary stat, preformatted
   when?: string;    // "2026-01-31 NJD @ OTT" for single-game records
 }
-export interface EdgeData { season: number; boards: Record<EdgeBoardId, Record<EdgePos, EdgeEntry[]>> }
+export interface EdgeStat { value: number; rank: number; avg?: number }
+export type EdgeTeamMetric = "shotSpeed" | "burst22" | "speed" | "distance" | "zoneOff" | "zoneDef" | "shots" | "shootPct";
+export type EdgeTeam = Record<EdgeTeamMetric, EdgeStat>;
+export interface EdgeData { season: number; boards: Record<EdgeBoardId, Record<EdgePos, EdgeEntry[]>>; teams: Record<string, EdgeTeam> }
+
+/**
+ * Every shot attempt of a season, flattened to save space. Seven numbers per shot:
+ * [game index, player id, team index, x, y, kind, strength] where x/y are normalised (attacking net at x=+89),
+ * kind is 0 saved, 1 missed, 2 blocked, 3 goal and strength is 0 even, 1 power play, 2 short-handed.
+ */
+export interface ShotFile { season: number; teams: string[]; games: number[]; shots: number[] }

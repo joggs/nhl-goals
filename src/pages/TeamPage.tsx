@@ -1,10 +1,12 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { useFavorites, useTheme } from "../lib/favorites";
 import { Face, Flag, StarButton, TeamLogo } from "../components/ui";
-import { RinkMap } from "../components/RinkMap";
+import { ShotMap } from "../components/ShotMap";
 import { tally } from "./Players";
+import { useEdge } from "../lib/edge";
+import { TEAM_METRICS } from "./Edge";
 import { teamColor } from "../lib/teamColors";
 import { fmtDate, ordinal } from "../lib/util";
 
@@ -13,6 +15,14 @@ export default function TeamPage() {
   const { teams, standings, goals, games, players, manifest, season } = useData();
   const { teams: favs } = useFavorites();
   const theme = useTheme();
+  const { gameById } = useData();
+  const pickFor = useCallback((s: { team: string }) => s.team === abbrev, [abbrev]);
+  const pickAgainst = useCallback((s: { team: string; game: number }) => {
+    if (s.team === abbrev) return false;
+    const g = gameById.get(s.game);
+    return !!g && (g.home.abbrev === abbrev || g.away.abbrev === abbrev);
+  }, [abbrev, gameById]);
+  const edge = useEdge(season, "regular")?.teams[abbrev];
   const team = teams.find((t) => t.abbrev === abbrev);
   const r = standings.find((s) => s.abbrev === abbrev);
   const live = season === manifest.currentSeason;
@@ -58,6 +68,16 @@ export default function TeamPage() {
           <div key={k} className="tile"><b>{v}</b><small>{k}</small></div>
         ))}
       </div>
+      {edge && (
+        <>
+          <h2>Edge profile <small className="muted">regular season, rank among 32 teams</small></h2>
+          <div className="tiles">
+            {TEAM_METRICS.map((m) => (
+              <div key={m.key} className="tile" title={m.title}><b>{m.fmt(edge[m.key].value)}</b><small>{m.title}</small><small className="rank-pill">#{edge[m.key].rank}</small></div>
+            ))}
+          </div>
+        </>
+      )}
       <div className="cols">
         <div>
           <h3>Goals by period</h3>
@@ -70,8 +90,8 @@ export default function TeamPage() {
           ))}
           <p className="muted rink-cap"><span className="rink-key" style={{ background: "var(--accent)" }} /> scored · <span className="rink-key against" /> allowed</p>
         </div>
-        <div><h3>Where they score</h3><RinkMap goals={d.gf} /></div>
-        <div><h3>Where they concede</h3><RinkMap goals={d.ga} /></div>
+        <div><h3>Where they score</h3><ShotMap goals={d.gf} pick={pickFor} /></div>
+        <div><h3>Where they concede</h3><ShotMap goals={d.ga} pick={pickAgainst} /></div>
       </div>
       <h2>Scoring leaders</h2>
       {d.players.length === 0 ? <p className="empty">No goals yet.</p> : (
