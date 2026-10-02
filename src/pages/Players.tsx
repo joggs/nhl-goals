@@ -7,48 +7,113 @@ import { FilterBar } from "../components/FilterBar";
 import { Face, Flag, GoalCard, TeamLogo } from "../components/ui";
 import { fmtDate } from "../lib/util";
 
-interface Row { id: number; goals: number; ppg: number; gwg: number; en: number; games: Set<number> }
+interface Row { id: number; points: number; goals: number; assists: number; ppg: number; shg: number; gwg: number; hat: number; en: number }
+type SortKey = "points" | "goals" | "assists" | "ppg" | "shg" | "gwg" | "hat" | "en";
+
+const COLUMNS: { key: SortKey; label: string; title: string }[] = [
+  { key: "points", label: "P", title: "Points (goals + assists)" },
+  { key: "goals", label: "G", title: "Goals" },
+  { key: "assists", label: "A", title: "Assists" },
+  { key: "ppg", label: "PPG", title: "Power-play goals" },
+  { key: "shg", label: "SHG", title: "Short-handed goals" },
+  { key: "gwg", label: "GWG", title: "Game-winning goals" },
+  { key: "hat", label: "HAT", title: "Hat tricks" },
+  { key: "en", label: "EN", title: "Empty-net goals" },
+];
 
 export function tally(goals: ReturnType<typeof useFilteredGoals>): Row[] {
   const m = new Map<number, Row>();
+  const row = (id: number) => {
+    let r = m.get(id);
+    if (!r) { r = { id, points: 0, goals: 0, assists: 0, ppg: 0, shg: 0, gwg: 0, hat: 0, en: 0 }; m.set(id, r); }
+    return r;
+  };
   for (const g of goals) {
-    const r = m.get(g.scorer.id) ?? { id: g.scorer.id, goals: 0, ppg: 0, gwg: 0, en: 0, games: new Set<number>() };
-    r.goals++; r.games.add(g.gameId);
+    const r = row(g.scorer.id);
+    r.goals++; r.points++;
     if (g.strength === "PP") r.ppg++;
+    if (g.strength === "SH") r.shg++;
     if (g.tags.includes("gwg")) r.gwg++;
+    if (g.tags.includes("hattrick")) r.hat++;
     if (g.emptyNet) r.en++;
-    m.set(g.scorer.id, r);
+    for (const a of g.assists) { const ar = row(a.id); ar.assists++; ar.points++; }
   }
-  return [...m.values()].sort((a, b) => b.goals - a.goals || b.gwg - a.gwg);
+  return [...m.values()];
 }
 
 export function Players() {
   const { players, loading } = useData();
   const [f, set] = useGoalFilter({ range: "season" });
-  const goals = useFilteredGoals(f);
-  const table = useMemo(() => tally(goals), [goals]);
+  // Nationality and name search select players, not goals: filtering goals by scorer would cut assists off.
+  const goals = useFilteredGoals({ ...f, nat: [], q: "" });
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "points", dir: -1 });
   const [n, setN] = useState(50);
+  const rows = useMemo(() => {
+    const q = f.q.trim().toLowerCase();
+    return tally(goals).filter((r) => {
+      const p = players[r.id];
+      if (f.nat.length && !f.nat.includes(p?.nat ?? "?")) return false;
+      return !q || (p?.n ?? "").toLowerCase().includes(q);
+    });
+  }, [goals, players, f.nat, f.q]);
+  const table = useMemo(() => {
+    const { key, dir } = sort;
+    return [...rows].sort((a, b) => dir * (a[key] - b[key]) || b.points - a.points || b.goals - a.goals || (players[a.id]?.n ?? "").localeCompare(players[b.id]?.n ?? ""));
+  }, [rows, sort, players]);
+  const leaders = (key: SortKey) => [...rows].sort((a, b) => b[key] - a[key] || b.points - a.points || b.goals - a.goals).filter((r) => r[key] > 0).slice(0, 5);
+  const click = (key: SortKey) => { setSort((s) => (s.key === key ? { key, dir: (-s.dir) as 1 | -1 } : { key, dir: -1 })); setN(50); };
   return (
     <section>
-      <div className="row between"><h1>Goal scorers</h1><span className="muted">{table.length} players · {goals.length} goals</span></div>
+      <div className="row between"><h1>Scoring leaders</h1><span className="muted">{rows.length} players · {goals.length} goals</span></div>
       <FilterBar f={f} set={set} />
       {loading ? <div className="spinner" /> : (
-        <table className="table">
-          <thead><tr><th>#</th><th>Player</th><th>Team</th><th>G</th><th>PPG</th><th>GWG</th><th>EN</th></tr></thead>
-          <tbody>
-            {table.slice(0, n).map((r, i) => {
-              const p = players[r.id];
-              return (
-                <tr key={r.id}>
-                  <td>{i + 1}</td>
-                  <td><Link to={`/player/${r.id}`} className="pl"><Face id={r.id} size={30} /> <Flag code={p?.nat} /> {p?.n ?? r.id}</Link></td>
-                  <td>{p?.t && <TeamLogo abbrev={p.t} size={22} />}</td>
-                  <td><b>{r.goals}</b></td><td>{r.ppg}</td><td>{r.gwg}</td><td>{r.en}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <>
+          <div className="cols">
+            {([["points", "Points"], ["goals", "Goals"], ["assists", "Assists"]] as const).map(([key, title]) => (
+              <div key={key}>
+                <h3>{title}</h3>
+                {leaders(key).map((r, i) => {
+                  const p = players[r.id];
+                  return (
+                    <Link key={r.id} to={`/player/${r.id}`} className="leader">
+                      <span className="rank">{i + 1}</span><Face id={r.id} size={28} />
+                      <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? r.id}</span>
+                      {p?.t && <TeamLogo abbrev={p.t} size={18} />}
+                      <b>{r[key]}</b>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <table className="table sortable">
+            <thead>
+              <tr>
+                <th>#</th><th>Player</th><th>Team</th>
+                {COLUMNS.map((c) => (
+                  <th key={c.key} title={c.title} aria-sort={sort.key === c.key ? (sort.dir === -1 ? "descending" : "ascending") : "none"}>
+                    <button className={`th-sort${sort.key === c.key ? " on" : ""}`} onClick={() => click(c.key)}>
+                      {c.label}{sort.key === c.key && <span aria-hidden="true">{sort.dir === -1 ? " ▼" : " ▲"}</span>}
+                    </button>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {table.slice(0, n).map((r, i) => {
+                const p = players[r.id];
+                return (
+                  <tr key={r.id}>
+                    <td>{i + 1}</td>
+                    <td><Link to={`/player/${r.id}`} className="pl"><Face id={r.id} size={30} /> <Flag code={p?.nat} /> {p?.n ?? r.id}</Link></td>
+                    <td>{p?.t && <TeamLogo abbrev={p.t} size={22} />}</td>
+                    {COLUMNS.map((c) => <td key={c.key}>{c.key === sort.key || c.key === "points" ? <b>{r[c.key]}</b> : r[c.key]}</td>)}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
       )}
       {n < table.length && <button className="more" onClick={() => setN(n + 50)}>Show more</button>}
     </section>
