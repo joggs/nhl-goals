@@ -1,7 +1,6 @@
 # Goalfeed (nhl-goals)
 
 Personligt hobbyprojekt: webbapp som visar alla NHL-mål per dag, spelare och nationalitet.
-Repo: https://github.com/joggs/nhl-goals · Sajt: https://joggs.github.io/nhl-goals/
 Svara på svenska, kort och direkt. Appens egen text är engelska.
 
 Repot är publikt. Skriv inget i filer, commits eller kommentarer som pekar ut vem som äger det: inga riktiga namn,

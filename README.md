@@ -4,8 +4,6 @@ Every NHL goal, per day, player and nationality. Dark-mode web app with generate
 ("Pettersson scores from the right circle with a slap shot past Levi on the power play…"), highlight clips,
 favourite teams and views such as *all Swedish goals this week*.
 
-**Live:** https://joggs.github.io/nhl-goals/
-
 ## Views
 - **Scores** – games per day, scorers per game, favourites filter. **Game** page with *Short summary* (≈5 min recap video) and *Full summary* (≈10 min condensed game), stars and every goal. Every goal has a 📺 clip.
 - **Goals** – the main feed. Filter by range (latest day / 7 / 30 days / season / custom), nationality, team, player,
