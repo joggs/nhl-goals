@@ -33,7 +33,7 @@ function GameCard({ g }: { g: Game }) {
         <ul className="mini-goals">
           {g.goals.map((x, i) => (
             <Fragment key={x.id}>
-              {i > 0 && g.goals[i - 1].period !== x.period && <li className="period-sep" aria-hidden="true"><span>{periodLabel(x)}</span></li>}
+              {i > 0 && g.goals[i - 1].period !== x.period && <li className="period-sep" aria-hidden="true"><i /><span>{periodLabel(x)}</span><i /></li>}
             <li>
               <button className="goal-line" disabled={!x.clip} title={x.clip ? "Watch the goal" : undefined}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}>

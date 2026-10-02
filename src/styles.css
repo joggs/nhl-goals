@@ -130,5 +130,10 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 
 .goal.playable { cursor: pointer; } .goal.playable:hover { border-color: var(--tc, var(--accent)); } .goal.playable video { cursor: default; }
 
-.mini-goals li.period-sep { display: flex; align-items: center; gap: .5rem; margin: .1rem 0; min-height: 0; line-height: 1; color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; }
-.mini-goals li.period-sep::before, .mini-goals li.period-sep::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.38), transparent); }
+.mini-goals li { column-gap: .3rem; } .goal-line { column-gap: .3rem; }
+/* Same column grid as the goal rows, so the period label sits centred over the score column. */
+.mini-goals li.period-sep { display: grid; grid-template-columns: 16px minmax(0, 1fr) 3.9ch 4.4ch 2ch 18px 20px; column-gap: .3rem; align-items: center; margin: .1rem 0; min-height: 0; line-height: 1; color: var(--muted); }
+.mini-goals li.period-sep span { grid-column: 3; text-align: center; font-size: .66rem; text-transform: uppercase; letter-spacing: .04em; }
+.mini-goals li.period-sep i { height: 1px; display: block; }
+.mini-goals li.period-sep i:first-child { grid-column: 1 / 3; background: linear-gradient(90deg, transparent, rgba(255,255,255,.38)); }
+.mini-goals li.period-sep i:last-child { grid-column: 4 / 8; background: linear-gradient(90deg, rgba(255,255,255,.38), transparent); }
