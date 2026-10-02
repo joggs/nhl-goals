@@ -11,7 +11,7 @@ const KIND = ["saved", "missed", "blocked"] as const;
 /** One rink per team with every shot attempt of the game. Goals are bigger; clicking one plays its clip. */
 export function GameShotMap({ game }: { game: Game }) {
   const { players } = useData();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [play, setPlay] = useState<Goal>();
   const shots = useShots(game.season, open);
   const mine = useMemo(() => (shots ?? []).filter((s) => s.game === game.id && s.kind !== 3), [shots, game.id]);
