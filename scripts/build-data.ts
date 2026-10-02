@@ -11,7 +11,7 @@
  * Finished games are cached in .cache/ and never re-fetched.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import type { Game, Goal, Manifest, PlayerInfo, StandingRow, Star, TeamInfo } from "../shared/types.js";
+import type { Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
 import { cached, pool, stats, web } from "./lib-nhl.js";
 
@@ -203,6 +203,34 @@ async function loadNationalities(players: Map<number, PlayerInfo>, seasons: numb
   });
 }
 
+/** Playoff bracket for one season, with the games of every series. The API keys brackets by the season's end year. */
+async function loadPlayoffs(season: number): Promise<PlayoffBracket> {
+  const br = await web(`/playoff-bracket/${season % 10000}`);
+  const team = (t: any, seed: string, wins: number) => (t ? { abbrev: t.abbrev, name: t.name.default, seed, wins: wins ?? 0 } : undefined);
+  const series = await pool<any, PlayoffSeries>(br.series ?? [], 4, async (r) => {
+    const top = team(r.topSeedTeam, r.topSeedRankAbbrev, r.topSeedWins);
+    const bottom = team(r.bottomSeedTeam, r.bottomSeedRankAbbrev, r.bottomSeedWins);
+    const winner = r.winningTeamId ? [r.topSeedTeam, r.bottomSeedTeam].find((t) => t?.id === r.winningTeamId)?.abbrev : undefined;
+    let games: PlayoffGame[] = [];
+    if (top && bottom) {
+      try {
+        // A finished series never changes, so it is cached like a finished game.
+        const sch = await cached(`.cache/series-${season}-${r.seriesLetter}.json`, !!winner, () => web(`/schedule/playoff-series/${season}/${r.seriesLetter.toLowerCase()}`));
+        games = (sch.games ?? []).map((g: any): PlayoffGame => {
+          const final = g.gameState === "OFF" || g.gameState === "FINAL";
+          return {
+            id: g.id, num: g.gameNumber, start: g.startTimeUTC, away: g.awayTeam.abbrev, home: g.homeTeam.abbrev,
+            awayScore: final ? g.awayTeam.score : undefined, homeScore: final ? g.homeTeam.score : undefined,
+            ot: final ? g.gameOutcome?.otPeriods : undefined, final, optional: !!g.ifNecessary,
+          };
+        });
+      } catch (e) { console.warn(`  series ${season}/${r.seriesLetter} failed: ${(e as Error).message}`); }
+    }
+    return { letter: r.seriesLetter, round: r.playoffRound, title: r.seriesTitle, top, bottom, winner, games };
+  });
+  return { season, series };
+}
+
 async function main() {
   await mkdir(OUT, { recursive: true });
   const cur = await currentSeasonId();
@@ -227,6 +255,11 @@ async function main() {
     const label = `${String(season).slice(0, 4)}–${String(season).slice(6)}`;
     manifest.seasons.push({ id: season, label, games: games.length, goals: games.reduce((a, g) => a + g.goals.length, 0) });
     console.log(`  wrote ${games.length} games, ${manifest.seasons.at(-1)!.goals} goals`);
+    try {
+      const po = await loadPlayoffs(season);
+      await writeFile(`${OUT}/playoffs-${season}.json`, JSON.stringify(po));
+      console.log(`  wrote playoff bracket (${po.series.length} series)`);
+    } catch (e) { console.warn(`  playoffs ${season} failed:`, (e as Error).message); }
   }
 
   console.log("Nationalities…");
@@ -242,6 +275,8 @@ async function main() {
     abbrev: r.teamAbbrev.default, name: r.teamName.default, division: r.divisionName, conference: r.conferenceName,
     gp: r.gamesPlayed, w: r.wins, l: r.losses, otl: r.otLosses, pts: r.points, gf: r.goalFor, ga: r.goalAgainst,
     streak: r.streakCode ? `${r.streakCode}${r.streakCount}` : undefined,
+    divRank: r.divisionSequence, wc: r.wildcardSequence, row: r.regulationPlusOtWins, ptsPct: r.pointPctg,
+    l10: `${r.l10Wins}-${r.l10Losses}-${r.l10OtLosses}`,
   }));
   const teams: TeamInfo[] = rows.map((r) => ({ abbrev: r.abbrev, name: r.name, division: r.division, conference: r.conference }));
   await writeFile(`${OUT}/standings.json`, JSON.stringify(rows));

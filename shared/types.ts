@@ -80,4 +80,26 @@ export interface Manifest {
 export interface StandingRow {
   abbrev: string; name: string; division: string; conference: string;
   gp: number; w: number; l: number; otl: number; pts: number; gf: number; ga: number; streak?: string;
+  divRank: number;  // 1-8 within the division
+  wc: number;       // wild-card position in the conference (1, 2), 0 = not in a wild-card spot
+  row: number;      // regulation + overtime wins
+  ptsPct: number;   // points percentage, 0-1
+  l10: string;      // "W-L-OTL" over the last ten games
 }
+
+export interface PlayoffTeam { abbrev: string; name: string; seed: string; wins: number }
+export interface PlayoffGame {
+  id: number; num: number; start: string; // ISO UTC
+  away: string; home: string; awayScore?: number; homeScore?: number;
+  ot?: number;       // overtime periods played
+  final: boolean; optional: boolean; // optional = only played if the series is still alive
+}
+export interface PlayoffSeries {
+  letter: string;    // A-O, the NHL's own series letter
+  round: number;     // 1-4
+  title: string;
+  top?: PlayoffTeam; bottom?: PlayoffTeam; // undefined until the earlier round decides it
+  winner?: string;   // abbrev
+  games: PlayoffGame[];
+}
+export interface PlayoffBracket { season: number; series: PlayoffSeries[] }

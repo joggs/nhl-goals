@@ -1,0 +1,108 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import type { PlayoffBracket, PlayoffGame, PlayoffSeries } from "../../shared/types";
+import { useData } from "../lib/data";
+import { Chip, TeamLogo } from "../components/ui";
+
+const base = import.meta.env.BASE_URL;
+const EAST = new Set("ABCDIJM");
+const ROUND_LABEL = ["First round", "Second round", "Conference final", "Stanley Cup Final"];
+const etDate = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "America/New_York" });
+
+function SeriesCard({ s, on, pick }: { s?: PlayoffSeries; on: boolean; pick: () => void }) {
+  if (!s) return <div className="series empty" />;
+  const side = (t: PlayoffSeries["top"]) => {
+    if (!t) return <div className="sd tbd"><span className="sd-name">TBD</span></div>;
+    const cls = s.winner ? (s.winner === t.abbrev ? " win" : " lose") : "";
+    return (
+      <div className={`sd${cls}`}>
+        <TeamLogo abbrev={t.abbrev} size={22} /><span className="sd-name">{t.abbrev}</span><small>{t.seed}</small><b>{t.wins}</b>
+      </div>
+    );
+  };
+  return (
+    <button className={`series${on ? " on" : ""}`} onClick={pick} aria-pressed={on} title={s.title}>
+      {side(s.top)}{side(s.bottom)}
+    </button>
+  );
+}
+
+function GameRow({ g, series }: { g: PlayoffGame; series: PlayoffSeries }) {
+  const { gameById } = useData();
+  if (!g.final) {
+    return <li className="muted">Game {g.num} · {etDate(g.start)}{g.optional ? " · if necessary" : ""}</li>;
+  }
+  const homeWon = (g.homeScore ?? 0) > (g.awayScore ?? 0);
+  const ot = g.ot ? ` (${g.ot > 1 ? `${g.ot}OT` : "OT"})` : "";
+  const body = (
+    <>
+      <span className="g-num">G{g.num}</span><span className="muted">{etDate(g.start)}</span>
+      <span className={homeWon ? "" : "g-win"}>{g.away} {g.awayScore}</span>–<span className={homeWon ? "g-win" : ""}>{g.homeScore} {g.home}</span>{ot}
+    </>
+  );
+  void series;
+  return <li>{gameById.has(g.id) ? <Link to={`/game/${g.id}`} className="g-row">{body}</Link> : <span className="g-row">{body}</span>}</li>;
+}
+
+export default function StanleyCup() {
+  const { season, setSeason, manifest } = useData();
+  const [data, setData] = useState<PlayoffBracket | null | undefined>(undefined);
+  const [sel, setSel] = useState<string>();
+  useEffect(() => {
+    let live = true;
+    setData(undefined); setSel(undefined);
+    fetch(`${base}data/playoffs-${season}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => live && setData(d));
+    return () => { live = false; };
+  }, [season]);
+
+  const endYear = season % 10000;
+  const label = manifest.seasons.find((s) => s.id === season)?.label ?? String(season);
+  const picker = (
+    <div className="row">{[...manifest.seasons].reverse().map((s) => <Chip key={s.id} active={s.id === season} onClick={() => setSeason(s.id)}>{s.label}</Chip>)}</div>
+  );
+  if (data === undefined || (data && data.season !== season)) return <section><h1>Stanley Cup</h1><div className="spinner" /></section>;
+  if (!data || data.series.length === 0) {
+    return (
+      <section>
+        <div className="row between"><h1>Stanley Cup {endYear}</h1><span className="muted">{label}</span></div>
+        {picker}
+        <p className="empty">🏒 The {endYear} playoffs haven't started yet. The bracket appears here when the regular season ends{manifest.seasons.length > 1 ? ", and earlier seasons are one tap away above" : ""}.</p>
+      </section>
+    );
+  }
+  const by = new Map(data.series.map((s) => [s.letter, s]));
+  const col = (letters: string) => [...letters].map((l) => by.get(l));
+  const final = by.get("O");
+  const champ = final?.winner ? [final.top, final.bottom].find((t) => t?.abbrev === final.winner) : undefined;
+  const picked = by.get(sel ?? (final?.games.length ? "O" : ""));
+  const columns: [string, number][] = [["ABCD", 0], ["IJ", 1], ["M", 2], ["O", 3], ["N", 2], ["KL", 1], ["EFGH", 0]];
+  return (
+    <section>
+      <div className="row between"><h1>Stanley Cup {endYear}</h1><span className="muted">{label}</span></div>
+      {picker}
+      {champ && final && (
+        <div className="champ"><span className="trophy">🏆</span><TeamLogo abbrev={champ.abbrev} size={44} />
+          <div><b>{champ.name}</b><br /><small className="muted">{endYear} Stanley Cup champions · won the final {Math.max(final.top?.wins ?? 0, final.bottom?.wins ?? 0)}–{Math.min(final.top?.wins ?? 0, final.bottom?.wins ?? 0)}</small></div>
+        </div>
+      )}
+      <div className="bracket-wrap">
+        <div className="bracket">
+          {columns.map(([letters, round], i) => (
+            <div key={i} className="b-col">
+              <h4>{round === 3 ? ROUND_LABEL[3] : `${EAST.has(letters[0]) ? "East" : "West"} · ${ROUND_LABEL[round]}`}</h4>
+              <div className="b-list">{col(letters).map((s, j) => <SeriesCard key={j} s={s} on={!!s && s.letter === picked?.letter} pick={() => s && setSel(s.letter)} />)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {picked && picked.top && picked.bottom && (
+        <div className="series-detail">
+          <h3><TeamLogo abbrev={picked.top.abbrev} size={26} /> {picked.top.name} <span className="muted">vs</span> <TeamLogo abbrev={picked.bottom.abbrev} size={26} /> {picked.bottom.name}</h3>
+          <p className="muted">{picked.title} · {picked.winner ? `${picked.winner} won ${Math.max(picked.top.wins, picked.bottom.wins)}–${Math.min(picked.top.wins, picked.bottom.wins)}` : `${picked.top.abbrev} ${picked.top.wins} – ${picked.bottom.wins} ${picked.bottom.abbrev}`}</p>
+          <ul className="g-list">{picked.games.map((g) => <GameRow key={g.id} g={g} series={picked} />)}</ul>
+        </div>
+      )}
+      {!picked && <p className="muted">Tap a series to see its games.</p>}
+    </section>
+  );
+}
