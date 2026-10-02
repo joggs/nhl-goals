@@ -131,5 +131,7 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .goal.playable { cursor: pointer; } .goal.playable:hover { border-color: var(--tc, var(--accent)); } .goal.playable video { cursor: default; }
 
 .mini-goals li { column-gap: .3rem; } .goal-line { column-gap: .3rem; }
-/* One long fading line between periods. */
-.mini-goals li.period-sep { display: block; height: 1px; min-height: 0; margin: .25rem 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.34) 12%, rgba(255,255,255,.34) 88%, transparent); }
+/* Period break: tiny label in the logo column, line continues to the right edge. */
+.mini-goals li.period-sep { display: flex; align-items: center; gap: .3rem; min-height: 0; margin: .25rem 0; line-height: 1; color: var(--muted); }
+.mini-goals li.period-sep span { flex: none; width: 16px; text-align: center; font-size: .6rem; font-weight: 600; letter-spacing: .02em; }
+.mini-goals li.period-sep::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.34) 85%, transparent); }
