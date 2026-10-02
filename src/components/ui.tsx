@@ -92,7 +92,9 @@ export function GoalCard({ goal, showGame = true, compact = false }: { goal: Goa
             <TvIcon />
           </button>
         )}
-        <p className="goal-text">{goal.text}</p>
+        {goal.clip
+          ? <p className="goal-text clickable" role="button" tabIndex={0} title="Watch the goal" onClick={() => setVideo((v) => !v)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setVideo((v) => !v))}>{goal.text}</p>
+          : <p className="goal-text">{goal.text}</p>}
         <p className="goal-who">
           <Link to={`/player/${goal.scorer.id}`}><Flag code={info?.nat} /> {goal.scorer.name}</Link>
           <span> · {goal.team}{goal.seasonGoal ? ` · goal #${goal.seasonGoal}` : ""}</span>

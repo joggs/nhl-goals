@@ -33,7 +33,11 @@ function GameCard({ g }: { g: Game }) {
         <ul className="mini-goals">
           {g.goals.map((x) => (
             <li key={x.id}>
-              <Flag code={players[x.scorer.id]?.nat} /> <b>{surname(x.scorer.name)}</b> <small>{x.away}–{x.home} · {x.team} · {x.time}{x.strength !== "EV" ? ` · ${x.strength}` : ""}{x.emptyNet ? " · EN" : ""}</small>
+              <button className="goal-line" disabled={!x.clip} title={x.clip ? "Watch the goal" : undefined}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}>
+                <TeamLogo abbrev={x.team} size={16} /> <b>{surname(x.scorer.name)}</b> <small>{x.away}–{x.home} · {x.time}{x.strength !== "EV" ? ` · ${x.strength}` : ""}{x.emptyNet ? " · EN" : ""}</small>
+              </button>
+              <Flag code={players[x.scorer.id]?.nat} />
               {x.clip && (
                 <button className={`tv mini${playing === x.id ? " on" : ""}`} title="Watch the goal here" aria-label="Play goal video"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}><TvIcon /></button>
