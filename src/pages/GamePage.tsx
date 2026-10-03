@@ -25,7 +25,7 @@ export default function GamePage() {
         {[g.away, g.home].map((t, i) => (
           <div key={t.abbrev} className="sb-team">
             <TeamLogo abbrev={t.abbrev} size={72} /><b>{t.name}</b>
-            {!hid && g.shotsByPeriod && <small>{t.sog ?? g.shotsByPeriod.reduce((a, p) => a + (i ? p.home : p.away), 0)} shots</small>}
+            {!hid && (t.sog ?? g.shotsByPeriod?.reduce((a, p) => a + (i ? p.home : p.away), 0)) !== undefined && <small>{t.sog ?? g.shotsByPeriod!.reduce((a, p) => a + (i ? p.home : p.away), 0)} shots on goal</small>}
           </div>
         )).flatMap((el, i) => i === 0 ? [el, <div key="mid" className="sb-mid"><div className="sb-score">{hid ? "?" : g.away.score}<span>–</span>{hid ? "?" : g.home.score}</div><span className="status">{hid ? "Played" : gameStatus(g)}</span></div>] : [el])}
       </div>

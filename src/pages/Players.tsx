@@ -177,7 +177,7 @@ export function PlayerPage() {
         <button className={`chip${tab === "assists" ? " on" : ""}`} onClick={() => setTab("assists")}>Assists ({assisted.length})</button>
       </div>
       {shown.length === 0 && <p className="empty">Nothing in this range.</p>}
-      {shown.map((g) => <div key={g.id}><small className="muted">{fmtDate(g.date)}</small><GoalCard goal={g} /></div>)}
+      {shown.map((g) => <div key={g.id}><small className="muted">{fmtDate(g.date)}</small><GoalCard goal={g} minimap /></div>)}
     </section>
   );
 }

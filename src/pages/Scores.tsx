@@ -21,6 +21,7 @@ function GameCard({ g }: { g: Game }) {
     <div className={`team-row${win ? " win" : ""}`}>
       <TeamLogo abbrev={t.abbrev} size={34} />
       <span className="tname">{t.name}{has(t.abbrev) && <em> ★</em>}</span>
+      {started && !hid && t.sog !== undefined && <small className="sog" title="Shots on goal">{t.sog} SOG</small>}
       <span className="tscore">{started ? (hid ? "•" : t.score) : ""}</span>
     </div>
   );

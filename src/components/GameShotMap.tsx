@@ -30,10 +30,11 @@ export function GameShotMap({ game }: { game: Game }) {
               const own = mine.filter((s: Shot) => s.team === abbrev);
               const goals = game.goals.filter((g) => g.team === abbrev && !g.ownGoal && g.x !== undefined);
               const c = [0, 1, 2].map((k) => own.filter((s) => s.kind === k).length);
+              const sog = (abbrev === game.away.abbrev ? game.away.sog : game.home.sog) ?? c[0] + goals.length;
               return (
                 <div key={abbrev} className="game-map tip-host">
                   <MapTip tip={tip?.key === abbrev ? tip : undefined} />
-                  <h3><TeamLogo abbrev={abbrev} size={22} /> {abbrev}</h3>
+                  <h3><TeamLogo abbrev={abbrev} size={22} /> {abbrev} <small className="muted">{sog} shots on goal</small></h3>
                   <div className="rink">
                     <Rink label={`${abbrev} shots`}>
                       {own.map((s, i) => (
@@ -46,7 +47,7 @@ export function GameShotMap({ game }: { game: Game }) {
                     </Rink>
                   </div>
                   <ZoneBars points={[...own, ...goals.map((g) => ({ x: g.x!, y: g.y! }))]} />
-                  <p className="muted rink-cap">{goals.length} goals · {c[0]} saved · {c[1]} missed · {c[2]} blocked</p>
+                  <p className="muted rink-cap">{sog} on goal ({goals.length} {goals.length === 1 ? "goal" : "goals"}, {c[0]} saved) · {c[1]} missed · {c[2]} blocked</p>
                 </div>
               );
             })}
