@@ -33,7 +33,7 @@ export default function Goals() {
         <>
           {shown.map((g) => {
             const head = grouped && g.date !== lastDate ? (lastDate = g.date, <h3 key={"d" + g.date} className="period"><Link to={`/?date=${g.date}`}>{fmtDate(g.date, { weekday: "long", day: "numeric", month: "long" })}</Link></h3>) : null;
-            return <div key={g.id}>{head}<GoalCard goal={g} /></div>;
+            return <div key={g.id}>{head}<GoalCard goal={g} minimap /></div>;
           })}
           {n < goals.length && <button className="more" onClick={() => setN(n + PAGE)}>Show {Math.min(PAGE, goals.length - n)} more</button>}
         </>
