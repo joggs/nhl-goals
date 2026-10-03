@@ -206,3 +206,6 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .tip-host { position: relative; }
 
 .goal-assists { display: flex; flex-wrap: wrap; gap: .1rem .7rem; margin: .1rem 0 0; font-size: .78rem; color: var(--muted); } .goal-assists a { color: var(--muted); } .goal-assists a:hover { color: var(--accent); }
+
+.goal-minimap { flex: none; width: 132px; align-self: center; } .goal-minimap svg { width: 100%; height: auto; display: block; } .rink-goal-halo { fill: var(--goal); fill-opacity: .22; }
+@media (max-width: 640px) { .goal-minimap { width: 92px; } }

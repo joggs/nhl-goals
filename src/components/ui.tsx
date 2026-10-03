@@ -9,6 +9,7 @@ import { useFavorites } from "../lib/favorites";
 import { useSpoilers } from "../lib/spoilers";
 import { clipSource } from "../lib/clip";
 import { teamColor } from "../lib/teamColors";
+import { MiniRink } from "./RinkMap";
 
 export const TvIcon = () => (
   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -98,7 +99,7 @@ const TAG_LABEL: Record<string, string> = {
 };
 export const tagLabel = (t: string) => TAG_LABEL[t];
 
-export function GoalCard({ goal, showGame = true, compact = false }: { goal: Goal; showGame?: boolean; compact?: boolean }) {
+export function GoalCard({ goal, showGame = true, compact = false, minimap = false }: { goal: Goal; showGame?: boolean; compact?: boolean; minimap?: boolean }) {
   const { players, gameById } = useData();
   const info = players[goal.scorer.id];
   const game = gameById.get(goal.gameId);
@@ -156,6 +157,7 @@ export function GoalCard({ goal, showGame = true, compact = false }: { goal: Goa
         </div>
         {video && goal.clip && <ClipModal goal={goal} onClose={() => setVideo(false)} />}
       </div>
+      {minimap && <MiniRink goal={goal} />}
     </article>
   );
 }

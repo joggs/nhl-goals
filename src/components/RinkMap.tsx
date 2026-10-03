@@ -125,3 +125,16 @@ export function Versus({ points, baseline }: { points: { x: number; y: number }[
     </g>
   );
 }
+
+/** Small rink with one marker: where a single goal was scored. Only a handful of SVG nodes, so it is cheap to repeat per goal. */
+export function MiniRink({ goal }: { goal: Goal }) {
+  if (goal.x === undefined || goal.y === undefined || goal.ownGoal) return null;
+  return (
+    <div className="goal-minimap" title={`${goal.distance !== undefined ? `${goal.distance} ft` : ""}${goal.zone ? ` · ${goal.zone}` : ""}`}>
+      <Rink label={`Where the goal was scored${goal.zone ? `: ${goal.zone}` : ""}`}>
+        <circle cx={goal.x} cy={42.5 - goal.y} r="4.5" className="rink-goal-halo" />
+        <circle cx={goal.x} cy={42.5 - goal.y} r="2.2" className={`shot shot-3${goal.strength === "PP" ? " pp" : ""}`} />
+      </Rink>
+    </div>
+  );
+}

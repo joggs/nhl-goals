@@ -58,7 +58,7 @@ export default function GamePage() {
       )}
       <h2>Goals ({g.goals.length})</h2>
       {g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : blocks.map((b) => (
-        <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} />)}</div>
+        <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} minimap />)}</div>
       ))}
       <GameShotMap game={g} />
         </>
