@@ -124,11 +124,6 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
     <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}${goal.clip ? " playable" : ""}`} onClick={(e) => { if (goal.clip && !(e.target as HTMLElement).closest("a,button,video,input")) setVideo((v) => !v); }} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
       <Link to={`/player/${goal.scorer.id}`} className="goal-face"><Face id={goal.scorer.id} size={compact ? 44 : 56} /><TeamLogo abbrev={goal.team} size={18} /></Link>
       <div className="goal-body">
-        {goal.clip && (
-          <button className={`tv${video ? " on" : ""}`} onClick={() => setVideo((v) => !v)} aria-label={video ? "Hide video" : "Play goal video"} title={video ? "Hide video" : "Watch the goal here"}>
-            <TvIcon />
-          </button>
-        )}
         <p className={`goal-text${goal.clip ? " clickable" : ""}`}>{goal.text}</p>
         <p className="goal-who">
           <Link to={`/player/${goal.scorer.id}`}><Flag code={info?.nat} /> {goal.scorer.name}</Link>
@@ -154,6 +149,11 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
           {showGame && game && <Link to={`/game/${game.id}`}>{game.away.abbrev} @ {game.home.abbrev}</Link>}
           {goal.distance !== undefined && <span>{goal.distance} ft</span>}
           {tags.map((t) => <span key={t} className="tag">{t}</span>)}
+          {goal.clip && (
+            <button className={`tv mini${video ? " on" : ""}`} onClick={() => setVideo((v) => !v)} aria-label={video ? "Hide video" : "Play goal video"} title={video ? "Hide video" : "Watch the goal here"}>
+              <TvIcon />
+            </button>
+          )}
         </div>
         {video && goal.clip && <ClipModal goal={goal} onClose={() => setVideo(false)} />}
       </div>
