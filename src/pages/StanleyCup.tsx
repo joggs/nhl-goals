@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { PlayoffBracket, PlayoffGame, PlayoffSeries } from "../../shared/types";
 import { useData } from "../lib/data";
-import { Chip, Face, Flag, TeamLogo } from "../components/ui";
+import { Chip, Face, Flag, GoalCard, TeamLogo } from "../components/ui";
 import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
 import { headshot } from "../lib/util";
@@ -30,11 +30,13 @@ function SeriesCard({ s, on, pick }: { s?: PlayoffSeries; on: boolean; pick: () 
   );
 }
 
-function GameRow({ g, series }: { g: PlayoffGame; series: PlayoffSeries }) {
+function GameRow({ g }: { g: PlayoffGame }) {
   const { gameById } = useData();
+  const [open, setOpen] = useState(false);
   if (!g.final) {
     return <li className="muted">Game {g.num} · {etDate(g.start)}{g.optional ? " · if necessary" : ""}</li>;
   }
+  const game = gameById.get(g.id);
   const homeWon = (g.homeScore ?? 0) > (g.awayScore ?? 0);
   const ot = g.ot ? ` (${g.ot > 1 ? `${g.ot}OT` : "OT"})` : "";
   const body = (
@@ -43,8 +45,17 @@ function GameRow({ g, series }: { g: PlayoffGame; series: PlayoffSeries }) {
       <span className={homeWon ? "" : "g-win"}>{g.away} {g.awayScore}</span>–<span className={homeWon ? "g-win" : ""}>{g.homeScore} {g.home}</span>{ot}
     </>
   );
-  void series;
-  return <li>{gameById.has(g.id) ? <Link to={`/game/${g.id}`} className="g-row">{body}</Link> : <span className="g-row">{body}</span>}</li>;
+  return (
+    <li>
+      <div className="g-line">
+        {game ? <Link to={`/game/${g.id}`} className="g-row">{body}</Link> : <span className="g-row">{body}</span>}
+        {game && game.goals.length > 0 && (
+          <button className="linkbtn" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "Hide goals" : `Goals (${game.goals.length})`}</button>
+        )}
+      </div>
+      {open && game && <div className="series-goals">{game.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} minimap />)}</div>}
+    </li>
+  );
 }
 
 type Leader = "points" | "goals" | "assists";
@@ -151,7 +162,7 @@ export default function StanleyCup() {
         <div className="series-detail">
           <h3><TeamLogo abbrev={picked.top.abbrev} size={26} /> {picked.top.name} <span className="muted">vs</span> <TeamLogo abbrev={picked.bottom.abbrev} size={26} /> {picked.bottom.name}</h3>
           <p className="muted">{picked.title} · {picked.winner ? `${picked.winner} won ${Math.max(picked.top.wins, picked.bottom.wins)}–${Math.min(picked.top.wins, picked.bottom.wins)}` : `${picked.top.abbrev} ${picked.top.wins} – ${picked.bottom.wins} ${picked.bottom.abbrev}`}</p>
-          <ul className="g-list">{picked.games.map((g) => <GameRow key={g.id} g={g} series={picked} />)}</ul>
+          <ul className="g-list">{picked.games.map((g) => <GameRow key={g.id} g={g} />)}</ul>
         </div>
       )}
       {!picked && <p className="muted">Tap a series to see its games.</p>}

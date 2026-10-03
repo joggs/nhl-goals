@@ -211,3 +211,4 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 @media (max-width: 640px) { .goal-minimap { width: 92px; } }
 .team-row .sog { color: var(--muted); font-size: .7rem; margin-right: .7rem; font-variant-numeric: tabular-nums; } .game-map h3 small { font-weight: 400; font-size: .75rem; }
 .goal-line { cursor: default; } .goal-line .c-name { cursor: pointer; } .goal-line .c-name:hover { color: var(--accent); text-decoration: underline; }
+.g-line { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; } .series-goals { margin: .3rem 0 .8rem; }
