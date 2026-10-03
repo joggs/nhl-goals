@@ -50,7 +50,7 @@ export default function Highlights() {
             <div key={s.id}>
               <div className="row between"><h2>{s.title} <small className="muted">{s.goals.length}</small></h2><Link to={s.link}>See all →</Link></div>
               <p className="muted">{s.blurb}</p>
-              {s.goals.slice(0, 4).map((g) => <GoalCard key={g.id} goal={g} />)}
+              {s.goals.slice(0, 4).map((g) => <GoalCard key={g.id} goal={g} minimap />)}
             </div>
           ))}
           {!sections.length && <p className="empty">Nothing notable in this range yet.</p>}
