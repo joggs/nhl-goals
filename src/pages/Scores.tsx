@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
@@ -13,6 +13,7 @@ function GameCard({ g }: { g: Game }) {
   const { has } = useFavorites();
   const sp = useSpoilers();
   const [playing, setPlaying] = useState<string | null>(null);
+  const navigate = useNavigate();
   const hid = sp.hidden(g);
   const awayWon = !hid && g.finished && g.away.score > g.home.score;
   const homeWon = !hid && g.finished && g.home.score > g.away.score;
@@ -36,14 +37,15 @@ function GameCard({ g }: { g: Game }) {
             <Fragment key={x.id}>
               {(i === 0 || g.goals[i - 1].period !== x.period) && <li className="period-sep" aria-hidden="true"><span>{x.periodType === "OT" ? "OT" : `P${x.period}`}</span></li>}
             <li className="row-band">
-              <button className="goal-line" disabled={!x.clip} title={x.clip ? "Watch the goal" : undefined}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === x.id ? null : x.id); }}>
+              <div className="goal-line">
                 <TeamLogo abbrev={x.team} size={16} />
-                <b className="c-name">{surname(x.scorer.name)}</b>
+                <b className="c-name" role="link" tabIndex={0} title={`${x.scorer.name}'s page`}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/player/${x.scorer.id}`); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); navigate(`/player/${x.scorer.id}`); } }}>{surname(x.scorer.name)}</b>
                 <small className="c-score">{x.away}–{x.home}</small>
                 <small className="c-time">{x.time}</small>
                 <small className="c-tag">{x.emptyNet ? "EN" : x.strength !== "EV" ? x.strength : ""}</small>
-              </button>
+              </div>
               <Flag code={players[x.scorer.id]?.nat} />
               {x.clip && (
                 <button className={`tv mini${playing === x.id ? " on" : ""}`} title="Watch the goal here" aria-label="Play goal video"
