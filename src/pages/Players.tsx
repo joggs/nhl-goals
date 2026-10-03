@@ -141,11 +141,11 @@ export function PlayerPage() {
   }, [scored]);
   void all;
   const pick = useCallback((sh: { player: number; game: number }) => {
-    if (sh.player !== pid) return false;
+    if (sh.player !== pid || (f.type && String(sh.game).slice(4, 6) !== f.type)) return false;
     const [a, b] = rangeBounds(f.range, anchor, f.from, f.to);
     const d = gameById.get(sh.game)?.date;
     return !!d && d >= a && d <= b;
-  }, [pid, f.range, f.from, f.to, anchor, gameById]);
+  }, [pid, f.type, f.range, f.from, f.to, anchor, gameById]);
   if (loading) return <div className="spinner" />;
   const name = p?.n ?? scored[0]?.scorer.name ?? `Player ${pid}`;
   const list = tab === "goals" ? scored : assisted;

@@ -38,6 +38,11 @@ export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Parti
           </span>
         </div>
       )}
+      {!hide.includes("type") && (
+        <div className="row">
+          {([["", "All games"], ["02", "Regular season"], ["03", "Stanley Cup"]] as const).map(([v, l]) => <Chip key={v} active={f.type === v} onClick={() => set({ type: v })}>{l}</Chip>)}
+        </div>
+      )}
       <div className="row">
         <input className="search" placeholder="Search player…" value={f.q} onChange={(e) => set({ q: e.target.value })} />
         {!hide.includes("nat") && (
