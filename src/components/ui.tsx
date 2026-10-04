@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Goal } from "../../shared/types";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useData } from "../lib/data";
 import { flag } from "../lib/flags";
@@ -18,20 +18,26 @@ export const TvIcon = () => (
 );
 
 /** Plays one goal clip inline, loading a fresh signed MP4 URL when mounted. */
-export function ClipPlayer({ clip, pageUrl }: { clip: number; pageUrl?: string }) {
+export function ClipPlayer({ clip, pageUrl, onEnded }: { clip: number; pageUrl?: string; onEnded?: () => void }) {
   const [state, setState] = useState<{ src?: string; error?: boolean }>({});
   useEffect(() => {
     let live = true;
     clipSource(clip).then((c) => live && setState({ src: c.src })).catch(() => live && setState({ error: true }));
     return () => { live = false; };
   }, [clip]);
+  // A clip that can't be loaded must not stall a playlist: move on after a moment.
+  useEffect(() => {
+    if (!state.error || !onEnded) return;
+    const t = window.setTimeout(onEnded, 1800);
+    return () => window.clearTimeout(t);
+  }, [state.error, onEnded]);
   if (state.error) return <p className="muted">Clip unavailable here. {pageUrl && <a href={pageUrl} target="_blank" rel="noreferrer">Open on NHL.com ↗</a>}</p>;
   if (!state.src) return <div className="video loading" />;
-  return <video className="video" src={state.src} controls autoPlay playsInline preload="auto" />;
+  return <video className="video" src={state.src} controls autoPlay playsInline preload="auto" onEnded={onEnded} />;
 }
 
 /** Large centred player for a goal clip. Closes on backdrop click, the ✕ button or Escape. */
-export function VideoModal({ clip, pageUrl, caption, label = "Goal video", onClose }: { clip?: number; pageUrl?: string; caption?: string; label?: string; onClose: () => void }) {
+export function VideoModal({ clip, pageUrl, caption, label = "Goal video", onClose, onEnded, onPrev, onNext, footer }: { clip?: number; pageUrl?: string; caption?: string; label?: string; onClose: () => void; onEnded?: () => void; onPrev?: () => void; onNext?: () => void; footer?: React.ReactNode }) {
   // Closing must never let the same tap/click reach the page underneath (it would open another clip),
   // so for a moment after closing any click in the document is swallowed.
   const down = useRef<boolean | null>(null); // did the press start on the backdrop? (null = touch, no mousedown)
@@ -42,13 +48,17 @@ export function VideoModal({ clip, pageUrl, caption, label = "Goal video", onClo
     onClose();
   };
   useEffect(() => {
-    const key = (e: KeyboardEvent) => e.key === "Escape" && close();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowRight" && onNext) onNext();
+      else if (e.key === "ArrowLeft" && onPrev) onPrev();
+    };
     document.addEventListener("keydown", key);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", key); document.body.style.overflow = prev; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onClose]);
+  }, [onClose, onNext, onPrev]);
   if (!clip) return null;
   return createPortal(
     <div className="modal-back" role="dialog" aria-modal="true" aria-label={label}
@@ -56,12 +66,39 @@ export function VideoModal({ clip, pageUrl, caption, label = "Goal video", onClo
       onClick={(e) => { e.stopPropagation(); e.preventDefault(); const ok = down.current !== false && e.target === e.currentTarget; down.current = null; if (ok) close(); }}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-x" onClick={close} aria-label="Close">✕</button>
-        <ClipPlayer clip={clip} pageUrl={pageUrl} />
+        <ClipPlayer key={clip} clip={clip} pageUrl={pageUrl} onEnded={onEnded} />
         {caption && <p className="modal-cap">{caption}</p>}
         {pageUrl && <a className="modal-link" href={pageUrl} target="_blank" rel="noreferrer">NHL.com ↗</a>}
+        {footer}
       </div>
     </div>,
     document.body,
+  );
+}
+
+/** Plays a list of goals back to back. Skips goals without a clip and goals from games still hidden by spoiler mode. */
+export function PlaylistModal({ goals, onClose }: { goals: Goal[]; onClose: () => void }) {
+  const { gameById } = useData();
+  const sp = useSpoilers();
+  const list = goals.filter((g) => g.clip && !sp.hidden(gameById.get(g.gameId)));
+  const [i, setI] = useState(0);
+  const n = list.length;
+  const next = useCallback(() => setI((k) => (k + 1 < n ? k + 1 : k)), [n]);
+  const prev = useCallback(() => setI((k) => Math.max(0, k - 1)), []);
+  const g = list[Math.min(i, n - 1)];
+  if (!g) return null;
+  const game = gameById.get(g.gameId);
+  const last = i >= n - 1;
+  return (
+    <VideoModal clip={g.clip} pageUrl={g.clipUrl} label="Goal playlist" onClose={onClose} onEnded={last ? undefined : next} onNext={next} onPrev={prev}
+      caption={g.text}
+      footer={(
+        <div className="pl-bar">
+          <button onClick={prev} disabled={i === 0} aria-label="Previous goal">‹ Prev</button>
+          <span className="pl-count"><b>{i + 1}</b> / {n}{game ? ` · ${game.away.abbrev} @ ${game.home.abbrev} · ${game.date}` : ""}</span>
+          <button onClick={next} disabled={last} aria-label="Next goal">Next ›</button>
+        </div>
+      )} />
   );
 }
 
