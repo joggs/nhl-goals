@@ -138,7 +138,8 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
   ) : <p className="goal-assists"><span>Unassisted</span></p>;
   return (
     <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}${goal.clip ? " playable" : ""}`} onClick={(e) => { if (goal.clip && !(e.target as HTMLElement).closest("a,button,video,input")) setVideo((v) => !v); }} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
-      <Link to={`/player/${faceId}`} className="goal-face"><Face id={faceId} size={compact ? 44 : 56} /><TeamLogo abbrev={goal.team} size={18} /></Link>
+      <Link to={`/player/${faceId}`} className="goal-face"><Face id={faceId} size={compact ? 44 : 56} /></Link>
+      <img className="goal-wm" src={logo(goal.team)} alt="" aria-hidden="true" loading="lazy" />
       <div className="goal-body">
         {lead && <div className="goal-lead">{lead === "scorer" ? scorerLine : assistLine}</div>}
         <p className={`goal-text${goal.clip ? " clickable" : ""}`}>{goal.text}</p>
