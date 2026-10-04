@@ -1,6 +1,5 @@
 import { useData } from "../lib/data";
 import { TeamLogo } from "../components/ui";
-import { teamColor } from "../lib/teamColors";
 import type { StandingRow } from "../../shared/types";
 
 const DIVISIONS = [["Eastern", ["Atlantic", "Metropolitan"]], ["Western", ["Central", "Pacific"]]] as const;
@@ -21,7 +20,7 @@ function DivisionTable({ name, rows }: { name: string; rows: StandingRow[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.abbrev} className={r.divRank === 3 ? "cut" : ""} style={{ "--tc": teamColor(r.abbrev).vivid } as React.CSSProperties}>
+            <tr key={r.abbrev} className={`${r.divRank <= 3 ? "st-in" : r.wc > 0 && r.wc <= 2 ? "st-wc" : "st-out"}${r.divRank === 3 ? " cut" : ""}`}>
               <td>{r.divRank}</td>
               <td><span className="pl"><TeamLogo abbrev={r.abbrev} size={22} /> {r.name}{r.wc > 0 && r.wc <= 2 && <span className="tag" title="Wild-card spot">WC{r.wc}</span>}</span></td>
               <td>{r.gp}</td><td>{r.w}</td><td>{r.l}</td><td>{r.otl}</td><td><b>{r.pts}</b></td>
@@ -44,6 +43,7 @@ export default function Standings() {
   return (
     <section>
       <div className="row between"><h1>Standings</h1><span className="muted">{season}{id === manifest.currentSeason ? "" : " · final regular-season table"} · top three per division make the playoffs, plus two wild cards per conference</span></div>
+      <div className="st-legend"><span className="st-in">Playoff spot (top 3 in division)</span><span className="st-wc">Wild card</span><span className="st-out">Outside</span></div>
       {DIVISIONS.map(([conf, divs]) => (
         <div key={conf}>
           <h2>{conf} Conference</h2>

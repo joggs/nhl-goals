@@ -255,3 +255,15 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .pl-bar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: .5rem .4rem 0; }
 .pl-bar button { background: var(--card2); color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: .3rem .9rem; font: inherit; font-size: .85rem; cursor: pointer; } .pl-bar button:disabled { opacity: .35; cursor: default; } .pl-bar button:not(:disabled):hover { border-color: var(--accent); }
 .pl-count { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; text-align: center; } .pl-count b { color: var(--text); }
+.stand-table tr { border-left: 0; }
+.stand-table td:first-child { border-left: 4px solid transparent; font-weight: 700; text-align: center; }
+.stand-table tr.st-in td:first-child { border-left-color: #3ecf8e; color: #3ecf8e; } .stand-table tr.st-wc td:first-child { border-left-color: var(--gold); color: var(--gold); }
+.stand-table tr.st-in { background: linear-gradient(90deg, rgba(62,207,142,.09), transparent 30%); } .stand-table tr.st-wc { background: linear-gradient(90deg, rgba(255,209,102,.09), transparent 30%); }
+.stand-table tr.st-out { color: var(--muted); } .stand-table tr.st-out .pl { color: var(--muted); } .stand-table tr.st-out td b { color: var(--text); }
+.st-legend { display: flex; gap: 1.2rem; flex-wrap: wrap; margin: .2rem 0 .6rem; font-size: .78rem; color: var(--muted); }
+.st-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: .4rem; vertical-align: -1px; background: var(--line); } .st-legend .st-in::before { background: #3ecf8e; } .st-legend .st-wc::before { background: var(--gold); }
+.stand-table td:first-child { border-left-width: 3px; }
+.stand-table tr.st-in td:first-child { border-left-color: rgba(62,207,142,.55); color: var(--text); } .stand-table tr.st-wc td:first-child { border-left-color: rgba(255,209,102,.5); color: var(--text); }
+.stand-table tr.st-in { background: linear-gradient(90deg, rgba(62,207,142,.07), rgba(62,207,142,.015) 45%, transparent 75%); } .stand-table tr.st-wc { background: linear-gradient(90deg, rgba(255,209,102,.07), rgba(255,209,102,.015) 45%, transparent 75%); }
+.stand-table tr.st-out td:first-child { color: var(--muted); }
+.st-legend .st-in::before { background: rgba(62,207,142,.6); } .st-legend .st-wc::before { background: rgba(255,209,102,.6); }
