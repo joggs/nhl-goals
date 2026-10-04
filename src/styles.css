@@ -114,7 +114,7 @@ input[type=date] { color-scheme: dark; } .search { min-width: 180px; } .sep { fl
 .tv:hover { color: var(--goal); } .tv.on:hover { color: #fff; }
 .watch { font-weight: 500; opacity: .8; }
 .mini-goals li { display: grid; grid-template-columns: minmax(0, 1fr) 18px 20px; align-items: center; column-gap: .35rem; min-height: 20px; }
-.goal-line { display: grid; grid-template-columns: 16px minmax(0, 1fr) 3.9ch 4.4ch 2ch; align-items: center; column-gap: .3rem; background: none; border: 0; padding: 0; margin: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.goal-line { display: grid; grid-template-columns: minmax(0, 1fr) 3.9ch 4.4ch 2ch; align-items: center; column-gap: .3rem; background: none; border: 0; padding: 0; margin: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0; }
 .goal-line .c-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .goal-line small { font-size: .74rem; white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; } .goal-line .c-score { text-align: center; } .goal-line .c-tag { text-align: center; color: var(--gold); font-weight: 600; }
 .goal-line:disabled { cursor: default; } .goal-line:hover:not(:disabled) b { color: var(--accent); }
@@ -236,3 +236,7 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .team-hero > *:not(.wm), .champ > *:not(.wm), .series-detail > *:not(.wm), .team-card > *:not(.wm):not(.team-fav) { position: relative; z-index: 1; }
 .team-hero .wm { height: 100%; } .team-hero-main { padding-left: 4.5rem; }
 .series-detail .wm { max-height: 150px; } .champ .wm { opacity: .2; }
+.game .wm { max-height: 150px; top: 8px; }
+.game .team-row { gap: .5rem; padding: .3rem 0; } .game .tname { font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em; } .game .team-row:not(.win) .tname { font-weight: 600; }
+.game .tscore { font-size: 1.9rem; font-weight: 800; } .game .sog { font-size: .8rem; }
+.game .mini-goals li.row-band { border-left: 3px solid var(--tc, transparent); padding-left: .5rem; margin-left: -.45rem; }

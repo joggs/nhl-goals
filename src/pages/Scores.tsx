@@ -3,9 +3,9 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
-import { Chip, ClipModal, Flag, VideoModal, Watermark, TeamLogo, TvIcon } from "../components/ui";
+import { Chip, ClipModal, Flag, VideoModal, Watermark, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
-import { gameVars } from "../lib/teamColors";
+import { gameVars, teamColor } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
 
 function GameCard({ g }: { g: Game }) {
@@ -21,7 +21,6 @@ function GameCard({ g }: { g: Game }) {
   const started = g.state !== "FUT" && g.state !== "PRE";
   const Row = ({ t, win }: { t: Game["away"]; win: boolean }) => (
     <div className={`team-row${win ? " win" : ""}`}>
-      <TeamLogo abbrev={t.abbrev} size={34} />
       <span className="tname">{t.name}{has(t.abbrev) && <em> ★</em>}</span>
       {started && !hid && t.sog !== undefined && <small className="sog" title="Shots on goal">{t.sog} SOG</small>}
       <span className="tscore">{started ? (hid ? "•" : t.score) : ""}</span>
@@ -38,9 +37,8 @@ function GameCard({ g }: { g: Game }) {
           {g.goals.map((x, i) => (
             <Fragment key={x.id}>
               {(i === 0 || g.goals[i - 1].period !== x.period) && <li className="period-sep" aria-hidden="true"><span>{x.periodType === "OT" ? "OT" : `P${x.period}`}</span></li>}
-            <li className="row-band">
+            <li className="row-band" style={{ "--tc": teamColor(x.team).vivid } as React.CSSProperties} title={`${x.team} goal`}>
               <div className="goal-line">
-                <TeamLogo abbrev={x.team} size={16} />
                 <b className="c-name" role="link" tabIndex={0} title={`${x.scorer.name}'s page`}
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/player/${x.scorer.id}`); }}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); navigate(`/player/${x.scorer.id}`); } }}>{surname(x.scorer.name)}</b>
