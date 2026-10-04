@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
-import { Chip, ClipModal, Flag, TeamLogo, TvIcon } from "../components/ui";
+import { Chip, ClipModal, Flag, VideoModal, TeamLogo, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
@@ -13,6 +13,7 @@ function GameCard({ g }: { g: Game }) {
   const { has } = useFavorites();
   const sp = useSpoilers();
   const [playing, setPlaying] = useState<string | null>(null);
+  const [summary, setSummary] = useState<"short" | "long" | null>(null);
   const navigate = useNavigate();
   const hid = sp.hidden(g);
   const awayWon = !hid && g.finished && g.away.score > g.home.score;
@@ -56,6 +57,14 @@ function GameCard({ g }: { g: Game }) {
           ))}
         </ul>
       )}
+      {!hid && (g.recapClip || g.condensedClip) && (
+        <div className="game-videos">
+          {g.recapClip && <button title="Recap, about 5 minutes" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSummary("short"); }}><TvIcon /> 5 min</button>}
+          {g.condensedClip && <button title="Condensed game, about 10 minutes" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSummary("long"); }}><TvIcon /> 10 min</button>}
+        </div>
+      )}
+      {!hid && summary && <VideoModal clip={summary === "short" ? g.recapClip : g.condensedClip} label="Game summary"
+        caption={`${summary === "short" ? "Recap" : "Condensed game"}: ${g.away.name} at ${g.home.name}`} onClose={() => setSummary(null)} />}
       {!hid && playing && (() => { const x = g.goals.find((q) => q.id === playing); return x?.clip ? <ClipModal goal={x} onClose={() => setPlaying(null)} /> : null; })()}
     </Link>
   );

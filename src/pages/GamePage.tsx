@@ -11,6 +11,7 @@ import { gameVars } from "../lib/teamColors";
 export default function GamePage() {
   const { id } = useParams();
   const { gameById, loading } = useData();
+  const [by, setBy] = useState<"scorer" | "assists">("scorer");
   const [vid, setVid] = useState<"short" | "long" | null>(null);
   const sp = useSpoilers();
   const g = gameById.get(Number(id));
@@ -56,9 +57,12 @@ export default function GamePage() {
           <Link key={s.id} to={`/player/${s.id}`} className="star-card"><span className="starno">{"★".repeat(4 - s.star)}</span><Face id={s.id} size={44} /><b>{s.name}</b><small>{s.team}</small></Link>
         ))}</div>
       )}
-      <h2>Goals ({g.goals.length})</h2>
+      <div className="row between">
+        <h2>Goals ({g.goals.length})</h2>
+        {g.goals.length > 0 && <div className="row"><Chip active={by === "scorer"} onClick={() => setBy("scorer")}>Goals</Chip><Chip active={by === "assists"} onClick={() => setBy("assists")}>Assists</Chip></div>}
+      </div>
       {g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : blocks.map((b) => (
-        <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} minimap />)}</div>
+        <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} minimap lead={by} />)}</div>
       ))}
       <GameShotMap game={g} />
         </>

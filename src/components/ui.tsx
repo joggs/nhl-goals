@@ -31,7 +31,7 @@ export function ClipPlayer({ clip, pageUrl }: { clip: number; pageUrl?: string }
 }
 
 /** Large centred player for a goal clip. Closes on backdrop click, the ✕ button or Escape. */
-export function ClipModal({ goal, onClose }: { goal: Goal; onClose: () => void }) {
+export function VideoModal({ clip, pageUrl, caption, label = "Goal video", onClose }: { clip?: number; pageUrl?: string; caption?: string; label?: string; onClose: () => void }) {
   // Closing must never let the same tap/click reach the page underneath (it would open another clip),
   // so for a moment after closing any click in the document is swallowed.
   const down = useRef<boolean | null>(null); // did the press start on the backdrop? (null = touch, no mousedown)
@@ -49,21 +49,24 @@ export function ClipModal({ goal, onClose }: { goal: Goal; onClose: () => void }
     return () => { document.removeEventListener("keydown", key); document.body.style.overflow = prev; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose]);
-  if (!goal.clip) return null;
+  if (!clip) return null;
   return createPortal(
-    <div className="modal-back" role="dialog" aria-modal="true" aria-label="Goal video"
+    <div className="modal-back" role="dialog" aria-modal="true" aria-label={label}
       onMouseDown={(e) => { down.current = e.target === e.currentTarget; }}
       onClick={(e) => { e.stopPropagation(); e.preventDefault(); const ok = down.current !== false && e.target === e.currentTarget; down.current = null; if (ok) close(); }}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-x" onClick={close} aria-label="Close">✕</button>
-        <ClipPlayer clip={goal.clip} pageUrl={goal.clipUrl} />
-        <p className="modal-cap">{goal.text}</p>
-        {goal.clipUrl && <a className="modal-link" href={goal.clipUrl} target="_blank" rel="noreferrer">NHL.com ↗</a>}
+        <ClipPlayer clip={clip} pageUrl={pageUrl} />
+        {caption && <p className="modal-cap">{caption}</p>}
+        {pageUrl && <a className="modal-link" href={pageUrl} target="_blank" rel="noreferrer">NHL.com ↗</a>}
       </div>
     </div>,
     document.body,
   );
 }
+
+export const ClipModal = ({ goal, onClose }: { goal: Goal; onClose: () => void }) =>
+  <VideoModal clip={goal.clip} pageUrl={goal.clipUrl} caption={goal.text} onClose={onClose} />;
 
 export const TeamLogo = ({ abbrev, size = 28 }: { abbrev: string; size?: number }) => (
   <img className="logo" src={logo(abbrev)} width={size} height={size} alt={abbrev} loading="lazy" />
@@ -99,7 +102,7 @@ const TAG_LABEL: Record<string, string> = {
 };
 export const tagLabel = (t: string) => TAG_LABEL[t];
 
-export function GoalCard({ goal, showGame = true, compact = false, minimap = false }: { goal: Goal; showGame?: boolean; compact?: boolean; minimap?: boolean }) {
+export function GoalCard({ goal, showGame = true, compact = false, minimap = false, lead }: { goal: Goal; showGame?: boolean; compact?: boolean; minimap?: boolean; lead?: "scorer" | "assists" }) {
   const { players, gameById } = useData();
   const info = players[goal.scorer.id];
   const game = gameById.get(goal.gameId);
@@ -120,21 +123,27 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
     );
   }
   const tags = goal.tags.map(tagLabel).filter(Boolean);
+  const faceId = lead === "assists" && goal.assists.length ? goal.assists[0].id : goal.scorer.id;
+  const scorerLine = (
+    <p className="goal-who">
+      <Link to={`/player/${goal.scorer.id}`}><Flag code={info?.nat} /> {goal.scorer.name}</Link>
+      <span> · {goal.team}{goal.seasonGoal ? ` · goal #${goal.seasonGoal}` : ""}</span>
+    </p>
+  );
+  const assistLine = goal.assists.length > 0 ? (
+    <p className="goal-assists">
+      <span>Assists</span>
+      {goal.assists.map((a) => <Link key={a.id} to={`/player/${a.id}`}><Flag code={players[a.id]?.nat} /> {a.name}</Link>)}
+    </p>
+  ) : <p className="goal-assists"><span>Unassisted</span></p>;
   return (
     <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}${goal.clip ? " playable" : ""}`} onClick={(e) => { if (goal.clip && !(e.target as HTMLElement).closest("a,button,video,input")) setVideo((v) => !v); }} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
-      <Link to={`/player/${goal.scorer.id}`} className="goal-face"><Face id={goal.scorer.id} size={compact ? 44 : 56} /><TeamLogo abbrev={goal.team} size={18} /></Link>
+      <Link to={`/player/${faceId}`} className="goal-face"><Face id={faceId} size={compact ? 44 : 56} /><TeamLogo abbrev={goal.team} size={18} /></Link>
       <div className="goal-body">
+        {lead && <div className="goal-lead">{lead === "scorer" ? scorerLine : assistLine}</div>}
         <p className={`goal-text${goal.clip ? " clickable" : ""}`}>{goal.text}</p>
-        <p className="goal-who">
-          <Link to={`/player/${goal.scorer.id}`}><Flag code={info?.nat} /> {goal.scorer.name}</Link>
-          <span> · {goal.team}{goal.seasonGoal ? ` · goal #${goal.seasonGoal}` : ""}</span>
-        </p>
-        {goal.assists.length > 0 && (
-          <p className="goal-assists">
-            <span>Assists</span>
-            {goal.assists.map((a) => <Link key={a.id} to={`/player/${a.id}`}><Flag code={players[a.id]?.nat} /> {a.name}</Link>)}
-          </p>
-        )}
+        {lead !== "scorer" && scorerLine}
+        {lead !== "assists" && goal.assists.length > 0 && assistLine}
         <div className="goal-meta">
           <span className="score-pill" title="Score after the goal">
             {game ? (
