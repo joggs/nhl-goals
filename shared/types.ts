@@ -85,6 +85,10 @@ export interface StandingRow {
   row: number;      // regulation + overtime wins
   ptsPct: number;   // points percentage, 0-1
   l10: string;      // "W-L-OTL" over the last ten games
+  rw?: number;      // regulation wins
+  home?: string;    // "W-L-OTL" at home
+  away?: string;    // "W-L-OTL" on the road
+  so?: string;      // shootout record "W-L"
 }
 
 export interface PlayoffTeam { abbrev: string; name: string; seed: string; wins: number }

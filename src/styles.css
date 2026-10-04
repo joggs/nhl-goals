@@ -222,3 +222,4 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .tabs-h2 { display: flex; gap: 1.2rem; align-items: baseline; margin: 1.6rem 0 .5rem; }
 .tabs-h2 button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 0 0 .1rem; font: inherit; font-size: 1.15rem; font-weight: 700; color: var(--muted); cursor: pointer; }
 .tabs-h2 button:hover { color: var(--text); } .tabs-h2 button.on { color: var(--text); border-bottom-color: var(--accent); }
+.stand-scroll { overflow-x: auto; } .stand-table td, .stand-table th { padding-left: .3rem; padding-right: .3rem; }

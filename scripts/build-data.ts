@@ -367,6 +367,9 @@ async function main() {
     streak: r.streakCode ? `${r.streakCode}${r.streakCount}` : undefined,
     divRank: r.divisionSequence, wc: r.wildcardSequence, row: r.regulationPlusOtWins, ptsPct: r.pointPctg,
     l10: `${r.l10Wins}-${r.l10Losses}-${r.l10OtLosses}`,
+    rw: r.regulationWins,
+    home: `${r.homeWins}-${r.homeLosses}-${r.homeOtLosses}`, away: `${r.roadWins}-${r.roadLosses}-${r.roadOtLosses}`,
+    so: `${r.shootoutWins}-${r.shootoutLosses}`,
   }));
   const rows = mapRows(await web("/standings/now"));
   // Earlier seasons: the table as it stood after the last regular-season game.

@@ -9,12 +9,14 @@ function DivisionTable({ name, rows }: { name: string; rows: StandingRow[] }) {
   return (
     <div className="stand">
       <h3>{name}</h3>
-      <table className="table stand-table">
+      <div className="stand-scroll"><table className="table stand-table">
         <thead>
           <tr>
             <th>#</th><th>Team</th><th title="Games played">GP</th><th>W</th><th>L</th><th title="Overtime losses">OTL</th><th title="Points">PTS</th>
-            <th className="hide-sm" title="Points percentage">P%</th><th className="hide-sm" title="Regulation + overtime wins">ROW</th>
-            <th className="hide-sm">GF</th><th className="hide-sm">GA</th><th title="Goal difference">DIFF</th><th className="hide-sm" title="Last ten games, W-L-OTL">L10</th><th title="Current streak">STRK</th>
+            <th className="hide-sm" title="Points percentage">P%</th><th className="hide-sm" title="Regulation wins">RW</th><th className="hide-sm" title="Regulation + overtime wins">ROW</th>
+            <th className="hide-sm">GF</th><th className="hide-sm">GA</th><th title="Goal difference">DIFF</th>
+            <th className="hide-sm" title="Home record, W-L-OTL">HOME</th><th className="hide-sm" title="Away record, W-L-OTL">AWAY</th><th className="hide-sm" title="Shootout record, W-L">S/O</th>
+            <th className="hide-sm" title="Last ten games, W-L-OTL">L10</th><th title="Current streak">STRK</th>
           </tr>
         </thead>
         <tbody>
@@ -23,13 +25,15 @@ function DivisionTable({ name, rows }: { name: string; rows: StandingRow[] }) {
               <td>{r.divRank}</td>
               <td><span className="pl"><TeamLogo abbrev={r.abbrev} size={22} /> {r.name}{r.wc > 0 && r.wc <= 2 && <span className="tag" title="Wild-card spot">WC{r.wc}</span>}</span></td>
               <td>{r.gp}</td><td>{r.w}</td><td>{r.l}</td><td>{r.otl}</td><td><b>{r.pts}</b></td>
-              <td className="hide-sm">{r.gp ? r.ptsPct.toFixed(3).replace(/^0/, "") : "–"}</td><td className="hide-sm">{r.row}</td>
+              <td className="hide-sm">{r.gp ? r.ptsPct.toFixed(3).replace(/^0/, "") : "–"}</td><td className="hide-sm">{r.rw ?? "–"}</td><td className="hide-sm">{r.row}</td>
               <td className="hide-sm">{r.gf}</td><td className="hide-sm">{r.ga}</td>
-              <td>{r.gf - r.ga > 0 ? "+" : ""}{r.gf - r.ga}</td><td className="hide-sm">{r.l10}</td><td>{r.streak ?? "–"}</td>
+              <td>{r.gf - r.ga > 0 ? "+" : ""}{r.gf - r.ga}</td>
+              <td className="hide-sm">{r.home ?? "–"}</td><td className="hide-sm">{r.away ?? "–"}</td><td className="hide-sm">{r.so ?? "–"}</td>
+              <td className="hide-sm">{r.l10}</td><td>{r.streak ?? "–"}</td>
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </div>
   );
 }
