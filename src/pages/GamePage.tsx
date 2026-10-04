@@ -7,10 +7,12 @@ import { Chip, ClipPlayer, Face, GoalCard, TeamLogo } from "../components/ui";
 import { GameShotMap } from "../components/GameShotMap";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
+import { flag } from "../lib/flags";
 
 export default function GamePage() {
   const { id } = useParams();
-  const { gameById, loading } = useData();
+  const { gameById, loading, players } = useData();
+  const [nat, setNat] = useState<string | null>(null);
   const [by, setBy] = useState<"scorer" | "assists">("scorer");
   const [vid, setVid] = useState<"short" | "long" | null>(null);
   const sp = useSpoilers();
@@ -19,6 +21,9 @@ export default function GamePage() {
   if (!g) return <p className="empty">Game not found. <Link to="/">Back to scores</Link></p>;
   const blocks = byPeriod(g);
   const hid = sp.hidden(g);
+  const is = (id: number) => players[id]?.nat === nat;
+  const shown = g.goals.filter((x) => !nat || (by === "scorer" ? is(x.scorer.id) : x.assists.some((a) => is(a.id))));
+  const shownBlocks = byPeriod({ ...g, goals: shown });
   return (
     <section>
       <Link to={`/?date=${g.date}`} className="back">‹ {fmtDate(g.date)}</Link>
@@ -58,10 +63,18 @@ export default function GamePage() {
         ))}</div>
       )}
       <div className="tabs-h2" role="tablist">
-        <button role="tab" aria-selected={by === "scorer"} className={by === "scorer" ? "on" : ""} onClick={() => setBy("scorer")}>Goals ({g.goals.length})</button>
-        {g.goals.length > 0 && <button role="tab" aria-selected={by === "assists"} className={by === "assists" ? "on" : ""} onClick={() => setBy("assists")}>Assists ({g.goals.reduce((n, x) => n + x.assists.length, 0)})</button>}
+        <button role="tab" aria-selected={by === "scorer"} className={by === "scorer" ? "on" : ""} onClick={() => setBy("scorer")}>Goals ({g.goals.filter((x) => !nat || is(x.scorer.id)).length})</button>
+        {g.goals.length > 0 && <button role="tab" aria-selected={by === "assists"} className={by === "assists" ? "on" : ""} onClick={() => setBy("assists")}>Assists ({g.goals.reduce((n, x) => n + x.assists.filter((a) => !nat || is(a.id)).length, 0)})</button>}
       </div>
-      {g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : blocks.map((b) => (
+      {g.goals.length > 0 && (
+        <div className="row presets">
+          {([["SWE", "Swedes"], ["FIN", "Finns"], ["USA", "Americans"], ["CAN", "Canadians"]] as const).map(([c, l]) => (
+            <Chip key={c} active={nat === c} onClick={() => setNat(nat === c ? null : c)}>{flag(c)} {l}</Chip>
+          ))}
+          <Chip active={nat === null} onClick={() => setNat(null)}>All nations</Chip>
+        </div>
+      )}
+      {g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : shown.length === 0 ? <p className="empty">No {by === "scorer" ? "goals scored" : "assists"} by that nation in this game.</p> : shownBlocks.map((b) => (
         <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} minimap lead={by} />)}</div>
       ))}
       <GameShotMap game={g} />

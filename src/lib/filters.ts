@@ -37,7 +37,7 @@ export function useGoalFilter(defaults: Partial<GoalFilter> = {}) {
     range: (sp.get("range") as Range) ?? defaults.range ?? "week",
     from: sp.get("from") ?? undefined, to: sp.get("to") ?? undefined,
     nat: sp.has("nat") ? list(sp.get("nat")) : defaults.nat ?? [],
-    natRole: sp.get("by") === "assist" ? "assist" : sp.get("by") === "either" ? "either" : "scorer",
+    natRole: sp.get("by") === "assist" ? "assist" : sp.get("by") === "either" ? "either" : sp.get("by") === "scorer" ? "scorer" : defaults.natRole ?? "scorer",
     team: list(sp.get("team")), against: list(sp.get("against")),
     player: sp.get("player") ? Number(sp.get("player")) : defaults.player,
     q: sp.get("q") ?? "", strength: list(sp.get("str")), tags: list(sp.get("tag")), period: list(sp.get("per")),
@@ -53,7 +53,7 @@ export function useGoalFilter(defaults: Partial<GoalFilter> = {}) {
     put("team", m.team.join(",")); put("against", m.against.join(","));
     put("player", m.player ? String(m.player) : undefined); put("q", m.q);
     put("str", m.strength.join(",")); put("tag", m.tags.join(",")); put("per", m.period.join(","));
-    put("by", m.natRole === "scorer" ? undefined : m.natRole);
+    put("by", m.natRole === (defaults.natRole ?? "scorer") ? undefined : m.natRole);
     put("mine", m.mine ? "1" : undefined); put("sort", m.sort === (defaults.sort ?? "new") ? undefined : m.sort);
     put("type", m.type);
     setSp(next, { replace: true });

@@ -33,7 +33,7 @@ function Shell() {
     r.setProperty("--bg-a", `color-mix(in srgb, ${c.vivid} 26%, #0b0e14)`);
     r.setProperty("--bg-b", `color-mix(in srgb, ${c.vivid2} 20%, #0b0e14)`);
   }, [theme.team]);
-  const nav = [["/", "Scores"], ["/goals", "Goals"], ["/highlights", "Highlights"], ["/players", "Players"], ["/nations", "Nations"], ["/standings", "Standings"], ["/stanley-cup", "Stanley Cup"], ["/edge", "Edge"], ["/teams", "Teams"]] as const;
+  const nav = [["/", "Scores"], ["/goals", "Goals"], ["/assists", "Assists"], ["/highlights", "Highlights"], ["/players", "Players"], ["/nations", "Nations"], ["/standings", "Standings"], ["/stanley-cup", "Stanley Cup"], ["/edge", "Edge"], ["/teams", "Teams"]] as const;
   return (
     <>
       <header className="top">
@@ -54,6 +54,7 @@ function Shell() {
           <Route path="/" element={<Scores />} />
           <Route path="/game/:id" element={<GamePage />} />
           <Route path="/goals" element={<Goals />} />
+          <Route path="/assists" element={<Goals assists />} />
           <Route path="/highlights" element={<SpoilerGate><Highlights /></SpoilerGate>} />
           <Route path="/players" element={<SpoilerGate><Players /></SpoilerGate>} />
           <Route path="/player/:id" element={<SpoilerGate><PlayerPage /></SpoilerGate>} />

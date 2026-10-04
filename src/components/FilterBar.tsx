@@ -26,7 +26,17 @@ export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Parti
   const toggle = (key: "nat" | "team" | "strength" | "tags" | "period", v: string) =>
     set({ [key]: f[key].includes(v) ? f[key].filter((x) => x !== v) : [...f[key], v] } as Partial<GoalFilter>);
 
+  const only = (n: string) => f.nat.length === 1 && f.nat[0] === n;
   return (
+    <>
+      {!hide.includes("nat") && (
+        <div className="row presets">
+          {([["SWE", "Swedes"], ["FIN", "Finns"], ["USA", "Americans"], ["CAN", "Canadians"]] as const).map(([c, l]) => (
+            <Chip key={c} active={only(c)} onClick={() => set({ nat: [c] })}>{flag(c)} {l}</Chip>
+          ))}
+          <Chip active={f.nat.length === 0} onClick={() => set({ nat: [] })}>All nations</Chip>
+        </div>
+      )}
     <div className="filterbar">
       {!hide.includes("range") && (
         <div className="row">
@@ -83,5 +93,6 @@ export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Parti
         {["1", "2", "3", "OT"].map((p) => <Chip key={p} active={f.period.includes(p)} onClick={() => toggle("period", p)}>{p === "OT" ? "OT" : `P${p}`}</Chip>)}
       </div>
     </div>
+    </>
   );
 }
