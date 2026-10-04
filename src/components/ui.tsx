@@ -69,7 +69,7 @@ export const ClipModal = ({ goal, onClose }: { goal: Goal; onClose: () => void }
   <VideoModal clip={goal.clip} pageUrl={goal.clipUrl} caption={goal.text} onClose={onClose} />;
 
 /** Faded team logo filling the height of its (position: relative; overflow: hidden) parent, flush to one edge. */
-export const Watermark = ({ abbrev, side = "left" }: { abbrev: string; side?: "left" | "right" }) => (
+export const Watermark = ({ abbrev, side = "left" }: { abbrev: string; side?: "left" | "right" | "center" }) => (
   <img className={`wm ${side}`} src={logo(abbrev)} alt="" aria-hidden="true" loading="lazy" />
 );
 

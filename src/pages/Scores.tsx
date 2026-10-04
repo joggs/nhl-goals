@@ -1,9 +1,9 @@
 import { Fragment, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
-import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
+import { addDays, fmtDate, gameStatus, logo, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
-import { Chip, ClipModal, Flag, VideoModal, Watermark, TvIcon } from "../components/ui";
+import { Chip, ClipModal, Flag, VideoModal, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars, teamColor } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
@@ -21,13 +21,13 @@ function GameCard({ g }: { g: Game }) {
   const started = g.state !== "FUT" && g.state !== "PRE";
   const Side = ({ t, win }: { t: Game["away"]; win: boolean }) => (
     <div className={`gc-side${win ? " win" : ""}`}>
+      <img className="gc-logo" src={logo(t.abbrev)} alt="" aria-hidden="true" loading="lazy" />
       <b className="gc-name">{t.name}{has(t.abbrev) && <em> ★</em>}</b>
       {started && !hid && t.sog !== undefined && <small className="sog" title="Shots on goal">{t.sog} SOG</small>}
     </div>
   );
   return (
     <Link to={`/game/${g.id}`} style={gameVars(g.away.abbrev, g.home.abbrev)} className={`game${g.state === "LIVE" || g.state === "CRIT" ? " live" : ""}`}>
-      <Watermark abbrev={g.away.abbrev} side="left" /><Watermark abbrev={g.home.abbrev} side="right" />
       <div className="game-head"><span className="status">{hid ? "Played" : gameStatus(g)}</span><span>{g.type === 3 ? "Playoffs" : g.venue}</span></div>
       <div className="gc-board">
         <Side t={g.away} win={awayWon} />
