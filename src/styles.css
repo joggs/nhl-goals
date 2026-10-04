@@ -303,3 +303,9 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 @media (max-width: 640px) { .stand-table th:nth-child(13), .stand-table td:nth-child(13) { display: none; } .stand-table td:nth-child(2), .stand-table th:nth-child(2) { max-width: 11rem; } }
 .game { container-type: inline-size; }
 .gc-name { overflow-wrap: normal; font-size: clamp(.9rem, 5.4cqw, 1.35rem); }
+.filter-toggle { display: none; }
+@media (max-width: 640px) {
+  .filter-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; margin: .5rem 0; padding: .55rem .9rem; background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 12px; font: inherit; font-weight: 600; cursor: pointer; }
+  .filter-toggle b { margin-left: .5rem; background: var(--accent); color: #fff; border-radius: 999px; padding: 0 .5rem; font-size: .75rem; } .filter-toggle i { font-style: normal; color: var(--muted); }
+  .filter-toggle.on { border-color: var(--accent); } .filterbar.fb-closed { display: none; } .filterbar { margin-top: 0; }
+}

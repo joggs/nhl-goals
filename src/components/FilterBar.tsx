@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useData } from "../lib/data";
 import { RANGES, type GoalFilter } from "../lib/filters";
 import { flag } from "../lib/flags";
@@ -26,6 +26,8 @@ export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Parti
   const toggle = (key: "nat" | "team" | "strength" | "tags" | "period", v: string) =>
     set({ [key]: f[key].includes(v) ? f[key].filter((x) => x !== v) : [...f[key], v] } as Partial<GoalFilter>);
 
+  const [open, setOpen] = useState(false); // only matters on small screens; the bar is always shown on larger ones
+  const active = (f.q ? 1 : 0) + f.team.length + f.against.length + (f.player ? 1 : 0) + f.tags.length + f.period.length + f.strength.length + (f.mine ? 1 : 0) + (f.type ? 1 : 0) + (f.range === "custom" ? 1 : 0);
   const only = (n: string) => f.nat.length === 1 && f.nat[0] === n;
   return (
     <>
@@ -37,7 +39,10 @@ export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Parti
           <Chip active={f.nat.length === 0} onClick={() => set({ nat: [] })}>All nations</Chip>
         </div>
       )}
-    <div className="filterbar">
+    <button className={`filter-toggle${open ? " on" : ""}`} onClick={() => setOpen(!open)} aria-expanded={open}>
+      <span>⚙ Filters{active > 0 ? <b>{active}</b> : null}</span><i>{open ? "▴" : "▾"}</i>
+    </button>
+    <div className={`filterbar${open ? "" : " fb-closed"}`}>
       {!hide.includes("range") && (
         <div className="row">
           {RANGES.map((r) => <Chip key={r.id} active={f.range === r.id} onClick={() => set({ range: r.id })}>{r.label}</Chip>)}
