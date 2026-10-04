@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useData } from "../lib/data";
 import { useFavorites } from "../lib/favorites";
-import { Face, TeamLogo } from "../components/ui";
+import { Face, TeamLogo, Watermark } from "../components/ui";
 import { ordinal } from "../lib/util";
 import { useSpoilers } from "../lib/spoilers";
 import { teamColor } from "../lib/teamColors";
@@ -43,6 +43,7 @@ export default function Teams() {
                     const top = st && [...st.scorers.entries()].sort((x, y) => y[1].n - x[1].n)[0];
                     return (
                       <Link key={t.abbrev} to={`/team/${t.abbrev}`} className={`team-card${favs.includes(t.abbrev) ? " fav" : ""}`} style={{ "--tc": teamColor(t.abbrev).vivid, "--tc2": teamColor(t.abbrev).vivid2 } as React.CSSProperties}>
+                        <Watermark abbrev={t.abbrev} side="right" />
                         <TeamLogo abbrev={t.abbrev} size={54} />
                         <div className="team-card-main">
                           <b>{t.name}</b>

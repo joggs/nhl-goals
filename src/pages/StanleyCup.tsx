@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { PlayoffBracket, PlayoffGame, PlayoffSeries } from "../../shared/types";
 import { useData } from "../lib/data";
-import { Chip, Face, Flag, GoalCard, TeamLogo } from "../components/ui";
+import { Chip, Face, Flag, GoalCard, TeamLogo, Watermark } from "../components/ui";
 import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
 import { headshot } from "../lib/util";
@@ -144,7 +144,7 @@ export default function StanleyCup() {
       <div className="row between"><h1>Stanley Cup {endYear}</h1><span className="muted">{label}</span></div>
       {picker}
       {champ && final && (
-        <div className="champ"><span className="trophy">🏆</span><TeamLogo abbrev={champ.abbrev} size={44} />
+        <div className="champ"><Watermark abbrev={champ.abbrev} side="right" /><span className="trophy">🏆</span><TeamLogo abbrev={champ.abbrev} size={44} />
           <div><b>{champ.name}</b><br /><small className="muted">{endYear} Stanley Cup champions · won the final {Math.max(final.top?.wins ?? 0, final.bottom?.wins ?? 0)}–{Math.min(final.top?.wins ?? 0, final.bottom?.wins ?? 0)}</small></div>
         </div>
       )}
@@ -160,6 +160,7 @@ export default function StanleyCup() {
       </div>
       {picked && picked.top && picked.bottom && (
         <div className="series-detail">
+          <Watermark abbrev={picked.top.abbrev} side="left" /><Watermark abbrev={picked.bottom.abbrev} side="right" />
           <h3><TeamLogo abbrev={picked.top.abbrev} size={26} /> {picked.top.name} <span className="muted">vs</span> <TeamLogo abbrev={picked.bottom.abbrev} size={26} /> {picked.bottom.name}</h3>
           <p className="muted">{picked.title} · {picked.winner ? `${picked.winner} won ${Math.max(picked.top.wins, picked.bottom.wins)}–${Math.min(picked.top.wins, picked.bottom.wins)}` : `${picked.top.abbrev} ${picked.top.wins} – ${picked.bottom.wins} ${picked.bottom.abbrev}`}</p>
           <ul className="g-list">{picked.games.map((g) => <GameRow key={g.id} g={g} />)}</ul>

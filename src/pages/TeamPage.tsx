@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { useFavorites, useTheme } from "../lib/favorites";
-import { Face, Flag, StarButton, TeamLogo } from "../components/ui";
+import { Face, Flag, StarButton, TeamLogo, Watermark } from "../components/ui";
 import { ShotMap } from "../components/ShotMap";
 import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
@@ -47,7 +47,7 @@ export default function TeamPage() {
     <section style={{ "--tc": tc.vivid, "--tc2": tc.vivid2 } as React.CSSProperties}>
       <p><Link to="/teams">← All teams</Link></p>
       <div className="team-hero">
-        <TeamLogo abbrev={abbrev} size={84} />
+        <Watermark abbrev={abbrev} side="left" />
         <div className="team-hero-main">
           <h1>{team.name}</h1>
           <p className="muted">{team.division} Division · {team.conference} Conference{r ? ` · ${ordinal(r.divRank)} in division${r.wc > 0 && r.wc <= 2 ? ` · wild card ${r.wc}` : ""}` : ""}</p>

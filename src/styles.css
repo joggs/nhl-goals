@@ -232,3 +232,7 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .sb-periods { display: flex; gap: .9rem; justify-content: center; margin-top: .5rem; font-size: .85rem; font-variant-numeric: tabular-nums; } .sb-periods i { font-style: normal; color: var(--muted); font-size: .7rem; margin-right: .15rem; }
 .sb-info { margin-top: .4rem; color: var(--muted); font-size: .75rem; }
 .game { position: relative; overflow: hidden; } .game > *:not(.wm) { position: relative; z-index: 1; } .game .wm { max-height: 190px; }
+.team-hero, .team-card, .champ, .series-detail { position: relative; overflow: hidden; }
+.team-hero > *:not(.wm), .champ > *:not(.wm), .series-detail > *:not(.wm), .team-card > *:not(.wm):not(.team-fav) { position: relative; z-index: 1; }
+.team-hero .wm { height: 100%; } .team-hero-main { padding-left: 4.5rem; }
+.series-detail .wm { max-height: 150px; } .champ .wm { opacity: .2; }
