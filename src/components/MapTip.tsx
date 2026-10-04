@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Game, Goal } from "../../shared/types";
 import type { Shot } from "../lib/shots";
 import { fmtDate, periodLabel } from "../lib/util";
+import { fmtM } from "../lib/units";
 
 export interface Tip { key?: string; x: number; y: number; flip: boolean; head: string; lines: string[] }
 
@@ -28,7 +29,7 @@ export function goalTip(g: Goal, game?: Game, withGame = false): { head: string;
   return {
     head: `⚽ ${g.scorer.name}`,
     lines: [
-      `Goal${g.shotType ? ` · ${g.shotType} shot` : ""}${g.distance !== undefined ? ` · ${g.distance} ft` : ""}`,
+      `Goal${g.shotType ? ` · ${g.shotType} shot` : ""}${g.distance !== undefined ? ` · ${fmtM(g.distance)}` : ""}`,
       `${periodLabel(g)} ${g.time}${STRENGTH[g.strength === "PP" ? 1 : g.strength === "SH" ? 2 : 0]}${g.emptyNet ? " · empty net" : ""}`,
       g.assists.length ? `Assists: ${g.assists.map((a) => a.name).join(", ")}` : "Unassisted",
       ...(game ? [`${game.away.abbrev} ${g.away} – ${g.home} ${game.home.abbrev}`] : []),

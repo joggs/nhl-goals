@@ -4,11 +4,12 @@ import type { EdgeBoardId, EdgeEntry, EdgePos, EdgeTeamMetric } from "../../shar
 import { useData } from "../lib/data";
 import { Chip, TeamLogo } from "../components/ui";
 import { headshot } from "../lib/util";
+import { kmh, km } from "../lib/units";
 import { useEdge, type GameType } from "../lib/edge";
 const BOARDS: { id: EdgeBoardId; title: string; blurb: string; fmt: (v: number) => string }[] = [
-  { id: "speed", title: "⚡ Fastest skaters", blurb: "Top skating speed in a single burst", fmt: (v) => `${v.toFixed(1)} mph` },
-  { id: "shot", title: "🎯 Hardest shots", blurb: "Fastest shot of the season", fmt: (v) => `${v.toFixed(1)} mph` },
-  { id: "distance", title: "🏃 Most distance skated", blurb: "Miles skated over the season", fmt: (v) => `${v.toFixed(0)} mi` },
+  { id: "speed", title: "⚡ Fastest skaters", blurb: "Top skating speed in a single burst", fmt: (v) => `${kmh(v).toFixed(1)} km/h` },
+  { id: "shot", title: "🎯 Hardest shots", blurb: "Fastest shot of the season", fmt: (v) => `${kmh(v).toFixed(1)} km/h` },
+  { id: "distance", title: "🏃 Most distance skated", blurb: "Distance skated over the season", fmt: (v) => `${km(v).toFixed(0)} km` },
   { id: "zone", title: "🔥 Most time in the offensive zone", blurb: "Share of ice time spent attacking", fmt: (v) => `${v.toFixed(1)}%` },
 ];
 
@@ -29,10 +30,10 @@ function Row({ e, i, fmt }: { e: EdgeEntry; i: number; fmt: (v: number) => strin
 }
 
 export const TEAM_METRICS: { key: EdgeTeamMetric; label: string; title: string; fmt: (v: number) => string }[] = [
-  { key: "shotSpeed", label: "Shot", title: "Hardest shot (mph)", fmt: (v) => v.toFixed(1) },
-  { key: "speed", label: "Speed", title: "Top skating speed (mph)", fmt: (v) => v.toFixed(1) },
-  { key: "burst22", label: "22+", title: "Bursts over 22 mph", fmt: (v) => v.toFixed(0) },
-  { key: "distance", label: "Miles", title: "Distance skated (miles)", fmt: (v) => v.toFixed(0) },
+  { key: "shotSpeed", label: "Shot", title: "Hardest shot (km/h)", fmt: (v) => kmh(v).toFixed(1) },
+  { key: "speed", label: "Speed", title: "Top skating speed (km/h)", fmt: (v) => kmh(v).toFixed(1) },
+  { key: "burst22", label: "35+", title: "Bursts over 35 km/h", fmt: (v) => v.toFixed(0) },
+  { key: "distance", label: "km", title: "Distance skated (km)", fmt: (v) => km(v).toFixed(0) },
   { key: "zoneOff", label: "O-zone", title: "Offensive-zone time (%)", fmt: (v) => `${v.toFixed(1)}%` },
   { key: "shots", label: "SOG", title: "Shots on goal", fmt: (v) => v.toFixed(0) },
   { key: "shootPct", label: "Sh%", title: "Shooting percentage", fmt: (v) => `${v.toFixed(1)}%` },

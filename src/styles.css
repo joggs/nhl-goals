@@ -267,3 +267,5 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .stand-table tr.st-in { background: linear-gradient(90deg, rgba(62,207,142,.07), rgba(62,207,142,.015) 45%, transparent 75%); } .stand-table tr.st-wc { background: linear-gradient(90deg, rgba(255,209,102,.07), rgba(255,209,102,.015) 45%, transparent 75%); }
 .stand-table tr.st-out td:first-child { color: var(--muted); }
 .st-legend .st-in::before { background: rgba(62,207,142,.6); } .st-legend .st-wc::before { background: rgba(255,209,102,.6); }
+.game .mini-goals li.row-band { position: relative; border-left: 0; padding-left: .75rem; margin-left: -.45rem; background: linear-gradient(90deg, color-mix(in srgb, var(--tc, #888) 15%, rgba(255,255,255,.04)) 0%, rgba(255,255,255,.05) 55%); }
+.game .mini-goals li.row-band::before { content: ""; position: absolute; left: .3rem; top: 24%; bottom: 24%; width: 3px; border-radius: 3px; background: var(--tc, transparent); opacity: .8; }

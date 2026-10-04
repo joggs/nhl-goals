@@ -22,7 +22,7 @@ export default function Highlights() {
       { id: "clutch", title: "Last-3-minute drama", blurb: "Tying or go-ahead goals in the final 3 minutes.", goals: clutch, link: `/goals?tag=tying${r}` },
       { id: "sh", title: "Shorthanded", blurb: "Scored while a man down.", goals: tag("shorthanded"), link: `/goals?tag=shorthanded${r}` },
       { id: "ps", title: "Penalty shots", blurb: "One-on-one from the spot.", goals: tag("penaltyshot"), link: `/goals?tag=penaltyshot${r}` },
-      { id: "far", title: "Long-range bombs", blurb: "Scored from 60+ ft with the net occupied.", goals: [...tag("longrange")].sort((a, b) => (b.distance ?? 0) - (a.distance ?? 0)), link: `/goals?tag=longrange&sort=dist${r}` },
+      { id: "far", title: "Long-range bombs", blurb: "Scored from 18+ m with the net occupied.", goals: [...tag("longrange")].sort((a, b) => (b.distance ?? 0) - (a.distance ?? 0)), link: `/goals?tag=longrange&sort=dist${r}` },
     ].filter((s) => s.goals.length);
   }, [goals, f.range]);
 

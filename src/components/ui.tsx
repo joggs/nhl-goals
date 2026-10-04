@@ -8,6 +8,7 @@ import { headshot, logo, periodLabel } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
 import { useSpoilers } from "../lib/spoilers";
 import { clipSource } from "../lib/clip";
+import { fmtM } from "../lib/units";
 import { teamColor } from "../lib/teamColors";
 import { MiniRink } from "./RinkMap";
 
@@ -199,7 +200,7 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
           </span>
           <span>{periodLabel(goal)} · {goal.time}</span>
           {showGame && game && <Link to={`/game/${game.id}`}>{game.away.abbrev} @ {game.home.abbrev}</Link>}
-          {goal.distance !== undefined && <span>{goal.distance} ft</span>}
+          {goal.distance !== undefined && <span>{fmtM(goal.distance)}</span>}
           {tags.map((t) => <span key={t} className="tag">{t}</span>)}
           {goal.clip && (
             <button className={`tv mini${video ? " on" : ""}`} onClick={() => setVideo((v) => !v)} aria-label={video ? "Hide video" : "Play goal video"} title={video ? "Hide video" : "Watch the goal here"}>

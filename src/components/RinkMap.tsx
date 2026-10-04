@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { Goal } from "../../shared/types";
 import { useData } from "../lib/data";
+import { fmtM } from "../lib/units";
 import { goalTip, MapTip, useMapTip } from "./MapTip";
 
 const CELL = 2;      // feet per heat cell
@@ -130,7 +131,7 @@ export function Versus({ points, baseline }: { points: { x: number; y: number }[
 export function MiniRink({ goal }: { goal: Goal }) {
   if (goal.x === undefined || goal.y === undefined || goal.ownGoal) return null;
   return (
-    <div className="goal-minimap" title={`${goal.distance !== undefined ? `${goal.distance} ft` : ""}${goal.zone ? ` · ${goal.zone}` : ""}`}>
+    <div className="goal-minimap" title={`${goal.distance !== undefined ? fmtM(goal.distance) : ""}${goal.zone ? ` · ${goal.zone}` : ""}`}>
       <Rink label={`Where the goal was scored${goal.zone ? `: ${goal.zone}` : ""}`}>
         <circle cx={goal.x} cy={42.5 - goal.y} r="4.5" className="rink-goal-halo" />
         <circle cx={goal.x} cy={42.5 - goal.y} r="2.2" className={`shot shot-3${goal.strength === "PP" ? " pp" : ""}`} />

@@ -6,6 +6,7 @@ import { Chip, Face, Flag, GoalCard, TeamLogo, Watermark } from "../components/u
 import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
 import { headshot } from "../lib/util";
+import { kmh } from "../lib/units";
 
 const base = import.meta.env.BASE_URL;
 const EAST = new Set("ABCDIJM");
@@ -67,7 +68,7 @@ function PlayoffLeaders({ season }: { season: number }) {
   const rows = useMemo(() => tally(goals.filter((g) => String(g.gameId).slice(4, 6) === "03")), [goals]);
   const top = (key: Leader) => [...rows].sort((a, b) => b[key] - a[key] || b.points - a.points || b.goals - a.goals).filter((r) => r[key] > 0).slice(0, 5);
   if (rows.length === 0) return null;
-  const edgeCards = ([["speed", "⚡ Fastest skaters", (v: number) => `${v.toFixed(1)} mph`], ["shot", "🎯 Hardest shots", (v: number) => `${v.toFixed(1)} mph`]] as const)
+  const edgeCards = ([["speed", "⚡ Fastest skaters", (v: number) => `${kmh(v).toFixed(1)} km/h`], ["shot", "🎯 Hardest shots", (v: number) => `${kmh(v).toFixed(1)} km/h`]] as const)
     .map(([id, title, fmt]) => ({ id, title, fmt, list: edge?.boards[id]?.all.slice(0, 5) ?? [] })).filter((c) => c.list.length);
   return (
     <>

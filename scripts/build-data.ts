@@ -264,11 +264,11 @@ const EDGE_POS: EdgePos[] = ["all", "F", "D"];
 const EDGE_BOARDS: Record<EdgeBoardId, { path: (pos: EdgePos, season: number, gt: number) => string; read: (r: any) => Pick<EdgeEntry, "value" | "sub" | "when"> }> = {
   speed: {
     path: (pos, season, gt) => `/edge/skater-speed-top-10/${pos}/max/${season}/${gt}`,
-    read: (r) => ({ value: r.maxSpeed.imperial, sub: `${r.burstsOver22} bursts over 22 mph`, when: overlayWhen(r.maxSpeed.overlay) }),
+    read: (r) => ({ value: r.maxSpeed.imperial, sub: `${r.burstsOver22} bursts over 35 km/h`, when: overlayWhen(r.maxSpeed.overlay) }),
   },
   shot: {
     path: (pos, season, gt) => `/edge/skater-shot-speed-top-10/${pos}/max/${season}/${gt}`,
-    read: (r) => ({ value: r.hardestShot.imperial, sub: `${r.shotAttemptsOver100} over 100 mph · ${r.shotAttempts90To100} at 90–100`, when: overlayWhen(r.hardestShot.overlay) }),
+    read: (r) => ({ value: r.hardestShot.imperial, sub: `${r.shotAttemptsOver100} over 160 km/h · ${r.shotAttempts90To100} at 145–160`, when: overlayWhen(r.hardestShot.overlay) }),
   },
   distance: {
     path: (pos, season, gt) => `/edge/skater-distance-top-10/${pos}/all/total/${season}/${gt}`,

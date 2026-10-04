@@ -8,7 +8,7 @@ import { Chip } from "./ui";
 const TAGS = [
   ["powerplay", "Power play"], ["shorthanded", "Shorthanded"], ["emptynet", "Empty net"], ["penaltyshot", "Penalty shot"],
   ["gwg", "Game-winners"], ["otwinner", "OT winners"], ["hattrick", "Hat tricks"], ["go-ahead", "Go-ahead"], ["tying", "Equalizers"],
-  ["longrange", "60+ ft"],
+  ["longrange", "18+ m"],
 ] as const;
 
 export function FilterBar({ f, set, hide = [] }: { f: GoalFilter; set: (p: Partial<GoalFilter>) => void; hide?: string[] }) {
