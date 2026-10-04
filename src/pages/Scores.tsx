@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { addDays, fmtDate, gameStatus, logo, surname } from "../lib/util";
@@ -85,6 +85,11 @@ export default function Scores() {
   const dates = new Set(games.map((g) => g.date));
   let day = games.filter((g) => g.date === date);
   if (mine && favs.length) day = day.filter((g) => favs.includes(g.home.abbrev) || favs.includes(g.away.abbrev));
+  const stripRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = stripRef.current, on = el?.querySelector<HTMLElement>(".day.on");
+    if (el && on) el.scrollTo({ left: on.offsetLeft - el.clientWidth / 2 + on.clientWidth / 2 });
+  }, [date]);
   const strip = Array.from({ length: 9 }, (_, i) => addDays(date, i - 4));
   const goals = day.reduce((a, g) => a + g.goals.length, 0);
   const anyHidden = day.some((g) => spoil.hidden(g));
@@ -92,7 +97,7 @@ export default function Scores() {
     <section>
       <div className="datenav">
         <button onClick={() => go(addDays(date, -1))} aria-label="Previous day">‹</button>
-        <div className="strip">
+        <div className="strip" ref={stripRef}>
           {strip.map((d) => (
             <button key={d} className={`day${d === date ? " on" : ""}${dates.has(d) ? "" : " empty"}`} onClick={() => go(d)}>
               <small>{fmtDate(d, { weekday: "short" })}</small><b>{fmtDate(d, { day: "numeric" })}</b><small>{fmtDate(d, { month: "short" })}</small>

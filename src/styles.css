@@ -269,3 +269,37 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .st-legend .st-in::before { background: rgba(62,207,142,.6); } .st-legend .st-wc::before { background: rgba(255,209,102,.6); }
 .game .mini-goals li.row-band { position: relative; border-left: 0; padding-left: .75rem; margin-left: -.45rem; background: linear-gradient(90deg, color-mix(in srgb, var(--tc, #888) 15%, rgba(255,255,255,.04)) 0%, rgba(255,255,255,.05) 55%); }
 .game .mini-goals li.row-band::before { content: ""; position: absolute; left: .3rem; top: 24%; bottom: 24%; width: 3px; border-radius: 3px; background: var(--tc, transparent); opacity: .8; }
+
+@media (max-width: 640px) {
+  .top { gap: .4rem .6rem; padding: .5rem .8rem; }
+  .top .brand { order: 1; } .top .top-right { order: 2; margin-left: auto; gap: .4rem; } .top .favs { display: none; }
+  .top nav { order: 3; flex: 1 0 100%; padding-bottom: 2px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+  .top nav::-webkit-scrollbar { display: none; }
+  .top nav a { padding: .3rem .65rem; font-size: .92rem; }
+  .chip.spoil { padding: .2rem .55rem; font-size: .78rem; } .top-right select { padding: .2rem .3rem; font-size: .8rem; }
+  .datenav { flex-wrap: wrap; } .datenav .strip { flex: 1; min-width: 0; } .datenav input[type=date] { order: 3; flex: 1 0 100%; }
+  .datenav > button { height: 54px; } .day { flex-basis: 54px; }
+}
+@media (max-width: 640px) {
+  .scoreboard { padding: 1rem .6rem; gap: .3rem; }
+  .sb-team b { font-size: 1.2rem; } .sb-team small { font-size: .7rem; } .sb-abbr { font-size: .65rem; }
+  .sb-logo { height: 68px; } .sb-mid .sb-score { height: 68px; font-size: 2.1rem; }
+  .sb-mid { flex: 0 0 auto; } .sb-periods { gap: .5rem; font-size: .75rem; white-space: nowrap; flex-wrap: nowrap; } .sb-periods i { margin-right: .1rem; }
+  .sb-info { display: none; }
+  .gc-name { font-size: 1.05rem; } .gc-logo { height: 76px; } .gc-mid { height: 76px; font-size: 2rem; }
+}
+@media (max-width: 640px) {
+  .goal .wm { max-height: 150px; top: 6px; }
+  .goal { flex-wrap: wrap; }
+  .goal-body { flex: 1 1 calc(100% - 4rem); }
+  .goal-minimap { flex: 0 0 auto; width: 140px; margin-left: 3.4rem; }
+}
+@media (max-width: 640px) {
+  .stand-table { font-size: .8rem; } .stand-table td, .stand-table th { padding-left: .22rem; padding-right: .22rem; }
+  .stand-table td:nth-child(2), .stand-table th:nth-child(2) { width: auto; max-width: 8.2rem; }
+  .stand-table td:nth-child(2) .pl { gap: .3rem; overflow: hidden; text-overflow: ellipsis; } .stand-table td:nth-child(2) .pl img { width: 18px; height: 18px; }
+  .stand-table .tag { display: none; }
+}
+@media (max-width: 640px) { .stand-table th:nth-child(13), .stand-table td:nth-child(13) { display: none; } .stand-table td:nth-child(2), .stand-table th:nth-child(2) { max-width: 11rem; } }
+.game { container-type: inline-size; }
+.gc-name { overflow-wrap: normal; font-size: clamp(.9rem, 5.4cqw, 1.35rem); }
