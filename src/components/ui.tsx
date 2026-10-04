@@ -68,6 +68,11 @@ export function VideoModal({ clip, pageUrl, caption, label = "Goal video", onClo
 export const ClipModal = ({ goal, onClose }: { goal: Goal; onClose: () => void }) =>
   <VideoModal clip={goal.clip} pageUrl={goal.clipUrl} caption={goal.text} onClose={onClose} />;
 
+/** Faded team logo filling the height of its (position: relative; overflow: hidden) parent, flush to one edge. */
+export const Watermark = ({ abbrev, side = "left" }: { abbrev: string; side?: "left" | "right" }) => (
+  <img className={`wm ${side}`} src={logo(abbrev)} alt="" aria-hidden="true" loading="lazy" />
+);
+
 export const TeamLogo = ({ abbrev, size = 28 }: { abbrev: string; size?: number }) => (
   <img className="logo" src={logo(abbrev)} width={size} height={size} alt={abbrev} loading="lazy" />
 );
@@ -139,7 +144,7 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
   return (
     <article className={`goal${goal.tags.includes("otwinner") ? " hot" : ""}${goal.clip ? " playable" : ""}`} onClick={(e) => { if (goal.clip && !(e.target as HTMLElement).closest("a,button,video,input")) setVideo((v) => !v); }} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
       <Link to={`/player/${faceId}`} className="goal-face"><Face id={faceId} size={compact ? 44 : 56} /></Link>
-      <img className="goal-wm" src={logo(goal.team)} alt="" aria-hidden="true" loading="lazy" />
+      <Watermark abbrev={goal.team} />
       <div className="goal-body">
         {lead && <div className="goal-lead">{lead === "scorer" ? scorerLine : assistLine}</div>}
         <p className={`goal-text${goal.clip ? " clickable" : ""}`}>{goal.text}</p>

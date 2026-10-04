@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus } from "../lib/util";
-import { Chip, ClipPlayer, Face, GoalCard, TeamLogo } from "../components/ui";
+import { Chip, ClipPlayer, Face, GoalCard, TeamLogo, Watermark } from "../components/ui";
 import { GameShotMap } from "../components/GameShotMap";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
@@ -28,6 +28,7 @@ export default function GamePage() {
     <section>
       <Link to={`/?date=${g.date}`} className="back">‹ {fmtDate(g.date)}</Link>
       <div className="scoreboard" style={gameVars(g.away.abbrev, g.home.abbrev)}>
+        <Watermark abbrev={g.away.abbrev} side="left" /><Watermark abbrev={g.home.abbrev} side="right" />
         {[g.away, g.home].map((t, i) => (
           <div key={t.abbrev} className="sb-team">
             <TeamLogo abbrev={t.abbrev} size={72} /><b>{t.name}</b>

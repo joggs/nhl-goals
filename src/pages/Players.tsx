@@ -4,7 +4,7 @@ import { SpoilerGate } from "../lib/spoilers";
 import { useData } from "../lib/data";
 import { rangeBounds, useFilteredGoals, useGoalFilter } from "../lib/filters";
 import { FilterBar } from "../components/FilterBar";
-import { Face, Flag, GoalCard, TeamLogo } from "../components/ui";
+import { Face, Flag, GoalCard, TeamLogo, Watermark } from "../components/ui";
 import { ShotMap } from "../components/ShotMap";
 import { fmtDate } from "../lib/util";
 
@@ -156,6 +156,7 @@ export function PlayerPage() {
   return (
     <section>
       <div className="profile">
+        {p?.t && <Watermark abbrev={p.t} side="right" />}
         <Face id={pid} size={96} />
         <div>
           <h1>{name}</h1>

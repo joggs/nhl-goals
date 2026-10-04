@@ -224,4 +224,6 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .tabs-h2 button:hover { color: var(--text); } .tabs-h2 button.on { color: var(--text); border-bottom-color: var(--accent); }
 .stand-scroll { overflow-x: auto; } .stand-table td, .stand-table th { padding-left: .3rem; padding-right: .3rem; }
 .goal { position: relative; overflow: hidden; } .goal-face, .goal-body { position: relative; z-index: 1; }
-.goal-wm { position: absolute; left: 0; top: 0; height: 100%; width: auto; transform: translateX(-16.7%); object-fit: contain; opacity: .1; pointer-events: none; z-index: 0; }
+.wm { position: absolute; top: 0; height: 100%; width: auto; object-fit: contain; filter: grayscale(1) invert(1); opacity: .1; pointer-events: none; z-index: 0; }
+.wm.left { left: 0; transform: translateX(-16.7%); } .wm.right { right: 0; transform: translateX(16.7%); }
+.scoreboard, .profile { position: relative; overflow: hidden; } .scoreboard > *:not(.wm), .profile > *:not(.wm) { position: relative; z-index: 1; }
