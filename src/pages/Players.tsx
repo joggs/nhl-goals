@@ -87,7 +87,7 @@ export function Players() {
               </div>
             ))}
           </div>
-          <table className="table sortable">
+          <div className="table-scroll"><table className="table sortable">
             <thead>
               <tr>
                 <th>#</th><th>Player</th><th>Team</th>
@@ -113,7 +113,7 @@ export function Players() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </>
       )}
       {n < table.length && <button className="more" onClick={() => setN(n + 50)}>Show more</button>}

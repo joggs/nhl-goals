@@ -1,6 +1,6 @@
-import { Component, useEffect } from "react";
+import { Component, useEffect, useRef } from "react";
 import type { ErrorInfo, ReactNode } from "react";
-import { HashRouter, NavLink, Route, Routes, Link } from "react-router-dom";
+import { HashRouter, NavLink, Route, Routes, Link, useLocation } from "react-router-dom";
 import { DataProvider, useData } from "./lib/data";
 import { useFavorites, useTheme } from "./lib/favorites";
 import { teamColor } from "./lib/teamColors";
@@ -19,6 +19,13 @@ import TeamPage from "./pages/TeamPage";
 import { SpoilerGate, useSpoilers } from "./lib/spoilers";
 
 function Shell() {
+  const navRef = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
+  // On small screens the menu scrolls sideways: keep the current page's tab in view.
+  useEffect(() => {
+    const el = navRef.current, on = el?.querySelector<HTMLElement>("a.on");
+    if (el && on) el.scrollTo({ left: on.offsetLeft - el.clientWidth / 2 + on.clientWidth / 2, behavior: "smooth" });
+  }, [pathname]);
   const { manifest, season, setSeason } = useData();
   const { teams } = useFavorites();
   const sp = useSpoilers();
@@ -38,7 +45,7 @@ function Shell() {
     <>
       <header className="top">
         <Link to="/" className="brand"><span className="lamp" />Goalfeed</Link>
-        <nav>{nav.map(([to, l]) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "on" : "")}>{l}</NavLink>)}</nav>
+        <nav ref={navRef}>{nav.map(([to, l]) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "on" : "")}>{l}</NavLink>)}</nav>
         <div className="top-right">
           <button className={`chip spoil${sp.on ? " on" : ""}`} onClick={() => sp.setOn(!sp.on)} title="Hide results until you reveal them">{sp.on ? "🙈 Spoilers hidden" : "👁 Spoilers shown"}</button>
           <span className="favs">{teams.slice(0, 4).map((t) => <TeamLogo key={t} abbrev={t} size={20} />)}</span>

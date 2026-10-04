@@ -309,3 +309,10 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
   .filter-toggle b { margin-left: .5rem; background: var(--accent); color: #fff; border-radius: 999px; padding: 0 .5rem; font-size: .75rem; } .filter-toggle i { font-style: normal; color: var(--muted); }
   .filter-toggle.on { border-color: var(--accent); } .filterbar.fb-closed { display: none; } .filterbar { margin-top: 0; }
 }
+.table-scroll { overflow-x: auto; }
+@media (max-width: 640px) {
+  .table.sortable th:nth-child(3), .table.sortable td:nth-child(3) { display: none; }
+  .table.sortable td:nth-child(2) .pl { gap: .35rem; white-space: nowrap; } .table.sortable td, .table.sortable th:nth-child(-n+3) { padding-left: .3rem; padding-right: .3rem; }
+  .table.sortable td:nth-child(2) .face { width: 24px; height: 24px; }
+}
+@media (max-width: 640px) { .profile .wm { max-height: 120px; top: 8px; right: -4px; opacity: .13; } .team-hero .wm { max-height: 100px; } }
