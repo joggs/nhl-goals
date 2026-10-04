@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import type { Goal } from "../../shared/types";
 import { useData } from "../lib/data";
 import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus } from "../lib/util";
@@ -23,18 +24,43 @@ export default function GamePage() {
   const hid = sp.hidden(g);
   const is = (id: number) => players[id]?.nat === nat;
   const shown = g.goals.filter((x) => !nat || (by === "scorer" ? is(x.scorer.id) : x.assists.some((a) => is(a.id))));
+  const periods = (() => {
+    const keys = new Map<string, { label: string; away: number; home: number }>();
+    const key = (x: Goal) => (x.periodType === "OT" ? "OT" : String(x.period));
+    if (g.finished) for (const k of ["1", "2", "3"]) keys.set(k, { label: `P${k}`, away: 0, home: 0 });
+    for (const x of g.goals) {
+      const k = key(x), e = keys.get(k) ?? { label: k === "OT" ? "OT" : `P${k}`, away: 0, home: 0 };
+      if (x.team === g.away.abbrev) e.away++; else e.home++;
+      keys.set(k, e);
+    }
+    return [...keys.values()];
+  })();
   const shownBlocks = byPeriod({ ...g, goals: shown });
   return (
     <section>
       <Link to={`/?date=${g.date}`} className="back">‹ {fmtDate(g.date)}</Link>
       <div className="scoreboard" style={gameVars(g.away.abbrev, g.home.abbrev)}>
         <Watermark abbrev={g.away.abbrev} side="left" /><Watermark abbrev={g.home.abbrev} side="right" />
-        {[g.away, g.home].map((t, i) => (
-          <div key={t.abbrev} className="sb-team">
-            <TeamLogo abbrev={t.abbrev} size={72} /><b>{t.name}</b>
-            {!hid && (t.sog ?? g.shotsByPeriod?.reduce((a, p) => a + (i ? p.home : p.away), 0)) !== undefined && <small>{t.sog ?? g.shotsByPeriod!.reduce((a, p) => a + (i ? p.home : p.away), 0)} shots on goal</small>}
+        {([[g.away, 0], [g.home, 1]] as const).map(([t, i]) => {
+          const sog = t.sog ?? g.shotsByPeriod?.reduce((n, p) => n + (i ? p.home : p.away), 0);
+          const pp = g.goals.filter((x) => x.team === t.abbrev && x.strength === "PP").length;
+          return (
+            <div key={t.abbrev} className="sb-team">
+              <b>{t.name}</b>
+              <span className="sb-abbr">{t.abbrev} · {i ? "Home" : "Away"}</span>
+              {!hid && sog !== undefined && <small>{sog} shots on goal{g.finished || g.goals.length ? ` · ${pp} PP goal${pp === 1 ? "" : "s"}` : ""}</small>}
+            </div>
+          );
+        }).flatMap((el, i) => i === 0 ? [el, (
+          <div key="mid" className="sb-mid">
+            <div className="sb-score">{hid ? "?" : g.away.score}<span>–</span>{hid ? "?" : g.home.score}</div>
+            <span className="status">{hid ? "Played" : gameStatus(g)}</span>
+            {!hid && periods.length > 0 && (
+              <div className="sb-periods">{periods.map((q) => <span key={q.label}><i>{q.label}</i> {q.away}–{q.home}</span>)}</div>
+            )}
+            <div className="sb-info">{[g.type === 3 ? "Playoffs" : "", g.venue, fmtDate(g.date, { weekday: "short", day: "numeric", month: "short" })].filter(Boolean).join(" · ")}</div>
           </div>
-        )).flatMap((el, i) => i === 0 ? [el, <div key="mid" className="sb-mid"><div className="sb-score">{hid ? "?" : g.away.score}<span>–</span>{hid ? "?" : g.home.score}</div><span className="status">{hid ? "Played" : gameStatus(g)}</span></div>] : [el])}
+        )] : [el])}
       </div>
       {hid ? (
         <div className="gate">
@@ -56,7 +82,6 @@ export default function GamePage() {
         <h2>{headline(g)}</h2>
         <p>{shortRecap(g)}</p>
         {blocks.map((b) => <p key={b.label}><b>{b.label}:</b> {b.goals.map((x) => `${x.scorer.name.split(" ").slice(1).join(" ")} (${x.team}, ${x.time})`).join("; ")}.</p>)}
-        {g.venue && <p className="muted">{g.venue}</p>}
       </div>
       {g.stars.length > 0 && (
         <div className="stars">{g.stars.map((s) => (

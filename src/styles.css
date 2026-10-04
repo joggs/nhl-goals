@@ -224,6 +224,11 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .tabs-h2 button:hover { color: var(--text); } .tabs-h2 button.on { color: var(--text); border-bottom-color: var(--accent); }
 .stand-scroll { overflow-x: auto; } .stand-table td, .stand-table th { padding-left: .3rem; padding-right: .3rem; }
 .goal { position: relative; overflow: hidden; } .goal-face, .goal-body { position: relative; z-index: 1; }
-.wm { position: absolute; top: 0; height: 100%; width: auto; object-fit: contain; filter: grayscale(1) invert(1); opacity: .1; pointer-events: none; z-index: 0; }
+.wm { position: absolute; top: 0; height: 100%; width: auto; object-fit: contain; filter: brightness(1.9) saturate(1.3); opacity: .15; pointer-events: none; z-index: 0; }
 .wm.left { left: 0; transform: translateX(-16.7%); } .wm.right { right: 0; transform: translateX(16.7%); }
 .scoreboard, .profile { position: relative; overflow: hidden; } .scoreboard > *:not(.wm), .profile > *:not(.wm) { position: relative; z-index: 1; }
+
+.sb-team b { font-size: 1.7rem; letter-spacing: -.01em; line-height: 1.1; } .sb-abbr { color: var(--muted); font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; }
+.sb-periods { display: flex; gap: .9rem; justify-content: center; margin-top: .5rem; font-size: .85rem; font-variant-numeric: tabular-nums; } .sb-periods i { font-style: normal; color: var(--muted); font-size: .7rem; margin-right: .15rem; }
+.sb-info { margin-top: .4rem; color: var(--muted); font-size: .75rem; }
+.game { position: relative; overflow: hidden; } .game > *:not(.wm) { position: relative; z-index: 1; } .game .wm { max-height: 190px; }

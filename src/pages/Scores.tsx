@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { addDays, fmtDate, gameStatus, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
-import { Chip, ClipModal, Flag, VideoModal, TeamLogo, TvIcon } from "../components/ui";
+import { Chip, ClipModal, Flag, VideoModal, Watermark, TeamLogo, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
@@ -29,6 +29,7 @@ function GameCard({ g }: { g: Game }) {
   );
   return (
     <Link to={`/game/${g.id}`} style={gameVars(g.away.abbrev, g.home.abbrev)} className={`game${g.state === "LIVE" || g.state === "CRIT" ? " live" : ""}`}>
+      <Watermark abbrev={g.away.abbrev} side="left" /><Watermark abbrev={g.home.abbrev} side="right" />
       <div className="game-head"><span className="status">{hid ? "Played" : gameStatus(g)}</span><span>{g.type === 3 ? "Playoffs" : g.venue}</span></div>
       <Row t={g.away} win={awayWon} /><Row t={g.home} win={homeWon} />
       {hid && <button className="reveal-mini" onClick={(e) => { e.preventDefault(); sp.reveal([g.id]); }}>Reveal result</button>}
