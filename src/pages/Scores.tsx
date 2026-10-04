@@ -19,18 +19,23 @@ function GameCard({ g }: { g: Game }) {
   const awayWon = !hid && g.finished && g.away.score > g.home.score;
   const homeWon = !hid && g.finished && g.home.score > g.away.score;
   const started = g.state !== "FUT" && g.state !== "PRE";
-  const Row = ({ t, win }: { t: Game["away"]; win: boolean }) => (
-    <div className={`team-row${win ? " win" : ""}`}>
-      <span className="tname">{t.name}{has(t.abbrev) && <em> ★</em>}</span>
+  const Side = ({ t, win }: { t: Game["away"]; win: boolean }) => (
+    <div className={`gc-side${win ? " win" : ""}`}>
+      <b className="gc-name">{t.name}{has(t.abbrev) && <em> ★</em>}</b>
       {started && !hid && t.sog !== undefined && <small className="sog" title="Shots on goal">{t.sog} SOG</small>}
-      <span className="tscore">{started ? (hid ? "•" : t.score) : ""}</span>
     </div>
   );
   return (
     <Link to={`/game/${g.id}`} style={gameVars(g.away.abbrev, g.home.abbrev)} className={`game${g.state === "LIVE" || g.state === "CRIT" ? " live" : ""}`}>
       <Watermark abbrev={g.away.abbrev} side="left" /><Watermark abbrev={g.home.abbrev} side="right" />
       <div className="game-head"><span className="status">{hid ? "Played" : gameStatus(g)}</span><span>{g.type === 3 ? "Playoffs" : g.venue}</span></div>
-      <Row t={g.away} win={awayWon} /><Row t={g.home} win={homeWon} />
+      <div className="gc-board">
+        <Side t={g.away} win={awayWon} />
+        <div className="gc-mid">
+          {!started ? <span className="gc-vs">@</span> : hid ? <span>•<i>–</i>•</span> : <><span className={awayWon ? "w" : ""}>{g.away.score}</span><i>–</i><span className={homeWon ? "w" : ""}>{g.home.score}</span></>}
+        </div>
+        <Side t={g.home} win={homeWon} />
+      </div>
       {hid && <button className="reveal-mini" onClick={(e) => { e.preventDefault(); sp.reveal([g.id]); }}>Reveal result</button>}
       {!hid && g.goals.length > 0 && (
         <ul className="mini-goals">
