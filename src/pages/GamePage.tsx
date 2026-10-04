@@ -57,9 +57,9 @@ export default function GamePage() {
           <Link key={s.id} to={`/player/${s.id}`} className="star-card"><span className="starno">{"★".repeat(4 - s.star)}</span><Face id={s.id} size={44} /><b>{s.name}</b><small>{s.team}</small></Link>
         ))}</div>
       )}
-      <div className="row between">
-        <h2>Goals ({g.goals.length})</h2>
-        {g.goals.length > 0 && <div className="row"><Chip active={by === "scorer"} onClick={() => setBy("scorer")}>Goals</Chip><Chip active={by === "assists"} onClick={() => setBy("assists")}>Assists</Chip></div>}
+      <div className="tabs-h2" role="tablist">
+        <button role="tab" aria-selected={by === "scorer"} className={by === "scorer" ? "on" : ""} onClick={() => setBy("scorer")}>Goals ({g.goals.length})</button>
+        {g.goals.length > 0 && <button role="tab" aria-selected={by === "assists"} className={by === "assists" ? "on" : ""} onClick={() => setBy("assists")}>Assists ({g.goals.reduce((n, x) => n + x.assists.length, 0)})</button>}
       </div>
       {g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : blocks.map((b) => (
         <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} minimap lead={by} />)}</div>
