@@ -62,14 +62,6 @@ export default function GamePage() {
           </div>
         )] : [el])}
       </div>
-      {hid ? (
-        <div className="gate">
-          <div className="gate-icon">🙈</div>
-          <p className="muted">Result, summary and goals are hidden.</p>
-          <button className="chip on" onClick={() => sp.reveal([g.id])}>Reveal this game</button>
-        </div>
-      ) : (
-        <>
       <div className="row">
         <Chip active={vid === "short"} onClick={() => setVid(vid === "short" ? null : "short")} title="~5 min recap video">▶ Short summary</Chip>
         <Chip active={vid === "long"} onClick={() => setVid(vid === "long" ? null : "long")} title="~10 min condensed game">▶ Full summary</Chip>
@@ -78,6 +70,14 @@ export default function GamePage() {
       {vid && ((vid === "short" ? g.recapClip : g.condensedClip)
         ? <ClipPlayer clip={(vid === "short" ? g.recapClip : g.condensedClip)!} />
         : <p className="muted">That video isn't available yet.</p>)}
+      {hid ? (
+        <div className="gate">
+          <div className="gate-icon">🙈</div>
+          <p className="muted">Result, recap text and goals are hidden. Watch the 5 or 10 min video above to see the game.</p>
+          <button className="chip on" onClick={() => sp.reveal([g.id])}>Reveal this game</button>
+        </div>
+      ) : (
+        <>
       <div className="recap">
         <h2>{headline(g)}</h2>
         <p>{shortRecap(g)}</p>

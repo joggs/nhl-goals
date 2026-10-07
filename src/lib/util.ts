@@ -3,7 +3,7 @@ import type { Game, Goal } from "../../shared/types";
 export const ordinal = (n: number) => (n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : `${n}th`);
 export const periodLabel = (g: Pick<Goal, "period" | "periodType">) =>
   g.periodType === "OT" ? (g.period > 4 ? `${g.period - 3}OT` : "OT") : ordinal(g.period);
-export const logo = (abbrev: string) => `https://assets.nhle.com/logos/nhl/svg/${abbrev}_light.svg`;
+export const logo = (abbrev: string) => `https://assets.nhle.com/logos/nhl/svg/${abbrev}_dark.svg`;
 export const headshot = (path?: string) => (path ? `https://assets.nhle.com/mugs/nhl/${path}` : undefined);
 
 export const addDays = (iso: string, n: number) => {

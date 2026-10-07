@@ -43,6 +43,7 @@ function GameCard({ g }: { g: Game }) {
             <Fragment key={x.id}>
               {(i === 0 || g.goals[i - 1].period !== x.period) && <li className="period-sep" aria-hidden="true"><span>{x.periodType === "OT" ? "OT" : `P${x.period}`}</span></li>}
             <li className="row-band" style={{ "--tc": teamColor(x.team).vivid } as React.CSSProperties} title={`${x.team} goal`}>
+              <img className="band-logo" src={logo(x.team)} alt={x.team} />
               <div className="goal-line">
                 <b className="c-name" role="link" tabIndex={0} title={`${x.scorer.name}'s page`}
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/player/${x.scorer.id}`); }}
@@ -61,13 +62,13 @@ function GameCard({ g }: { g: Game }) {
           ))}
         </ul>
       )}
-      {!hid && (g.recapClip || g.condensedClip) && (
+      {(g.recapClip || g.condensedClip) && (
         <div className="game-videos">
           {g.recapClip && <button title="Recap, about 5 minutes" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSummary("short"); }}><TvIcon /> 5 min</button>}
           {g.condensedClip && <button title="Condensed game, about 10 minutes" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSummary("long"); }}><TvIcon /> 10 min</button>}
         </div>
       )}
-      {!hid && summary && <VideoModal clip={summary === "short" ? g.recapClip : g.condensedClip} label="Game summary"
+      {summary && <VideoModal clip={summary === "short" ? g.recapClip : g.condensedClip} label="Game summary"
         caption={`${summary === "short" ? "Recap" : "Condensed game"}: ${g.away.name} at ${g.home.name}`} onClose={() => setSummary(null)} />}
       {!hid && playing && (() => { const x = g.goals.find((q) => q.id === playing); return x?.clip ? <ClipModal goal={x} onClose={() => setPlaying(null)} /> : null; })()}
     </Link>
