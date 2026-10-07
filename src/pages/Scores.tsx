@@ -5,7 +5,7 @@ import { addDays, fmtDate, gameStatus, logo, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
 import { Chip, ClipModal, Flag, VideoModal, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
-import { gameVars, teamColor } from "../lib/teamColors";
+import { gameVars } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
 
 function GameCard({ g }: { g: Game }) {
@@ -42,7 +42,7 @@ function GameCard({ g }: { g: Game }) {
           {g.goals.map((x, i) => (
             <Fragment key={x.id}>
               {(i === 0 || g.goals[i - 1].period !== x.period) && <li className="period-sep" aria-hidden="true"><span>{x.periodType === "OT" ? "OT" : `P${x.period}`}</span></li>}
-            <li className="row-band" style={{ "--tc": teamColor(x.team).vivid } as React.CSSProperties} title={`${x.team} goal`}>
+            <li className="row-band" style={{ "--tc": x.team === g.away.abbrev ? "var(--ta)" : "var(--th)" } as React.CSSProperties} title={`${x.team} goal`}>
               <img className="band-logo" src={logo(x.team)} alt={x.team} />
               <div className="goal-line">
                 <b className="c-name" role="link" tabIndex={0} title={`${x.scorer.name}'s page`}
