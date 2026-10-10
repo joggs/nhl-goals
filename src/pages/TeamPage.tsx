@@ -10,7 +10,7 @@ import { useEdge } from "../lib/edge";
 import { TEAM_METRICS } from "./Edge";
 import { teamColor } from "../lib/teamColors";
 import { NewsList } from "../components/NewsList";
-import { InjuryNews, recentNews } from "../components/InjuryNews";
+import { InjuryCards, recentNews } from "../components/InjuryNews";
 import { fmtDate, ordinal } from "../lib/util";
 
 export default function TeamPage() {
@@ -57,7 +57,7 @@ export default function TeamPage() {
           <h1>{team.name}</h1>
           <p className="muted">{team.division} Division · {team.conference} Conference{r ? ` · ${ordinal(r.divRank)} in division${r.wc > 0 && r.wc <= 2 ? ` · wild card ${r.wc}` : ""}` : ""}</p>
           {r && <p><b>{r.w}-{r.l}-{r.otl}</b> · <b>{r.pts}</b> pts · GF {r.gf} · GA {r.ga} · L10 {r.l10}{r.streak && <> · streak <b>{r.streak}</b></>}</p>}
-          <InjuryNews title="" max={3} items={recentNews(news, { teams: [abbrev], days: 14, latestPerPlayer: true })} />
+          <InjuryCards items={recentNews(news, { teams: [abbrev], days: 14, latestPerPlayer: true }).slice(0, 3)} />
         </div>
         <div className="team-hero-tools">
           <StarButton abbrev={abbrev} />

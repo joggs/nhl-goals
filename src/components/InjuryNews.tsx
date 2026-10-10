@@ -65,16 +65,16 @@ function Card({ n }: { n: NewsItem }) {
     <div className="star-card news-card">
       <span aria-hidden="true">🩹</span>
       {pid && players[pid]?.h ? <Face id={pid} size={44} /> : <TeamLogo abbrev={n.teams[0]} size={36} />}
-      <div><b>{who ?? n.teams.join(" / ")}</b>{n.teams[0] && <span className="news-team"> {n.teams[0]}</span>}<br />{body}</div>
+      <div><b>{who ?? n.teams.join(" / ")}</b>{who && n.teams[0] && <span className="news-team"> {n.teams[0]}</span>}<br />{body}</div>
     </div>
   );
 }
 
-export function InjuryCards({ items }: { items: NewsItem[] }) {
+export function InjuryCards({ items, title = "Injuries" }: { items: NewsItem[]; title?: string }) {
   if (!items.length) return null;
   return (
     <div className="infobox">
-      <h4 className="infolabel">Injuries</h4>
+      <h4 className="infolabel">{title}</h4>
       <div className="stars">{items.map((n) => <Card key={n.id} n={n} />)}</div>
     </div>
   );
@@ -97,4 +97,22 @@ export function InjuryBadge({ player }: { player: number }) {
   const items = recentNews(news, { player, days: 14 });
   if (!items.length) return null;
   return <ul className="news"><Line n={items[0]} /></ul>;
+}
+
+const etDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE", { timeZone: "America/New_York" });
+
+/** Injury stories reported on one game day, and what was still fresh in the days before (latest per player, not repeated). */
+export function injuriesAround(news: NewsItem[], date: string, teams?: string[]) {
+  const inj = news.filter((n) => n.cat === "injury" && (!teams || n.teams.some((t) => teams.includes(t))));
+  const on = inj.filter((n) => etDay(n.date) === date);
+  const seen = new Set(on.flatMap((n) => n.players));
+  const before: NewsItem[] = [];
+  for (const n of inj) {
+    const d = etDay(n.date);
+    if (d >= date || d < new Date(Date.parse(date + "T12:00:00Z") - 3 * 86400e3).toISOString().slice(0, 10)) continue;
+    if (n.players.length && n.players.every((p) => seen.has(p))) continue;
+    n.players.forEach((p) => seen.add(p));
+    before.push(n);
+  }
+  return { on, before };
 }
