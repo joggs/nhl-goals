@@ -323,3 +323,5 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 
 .infobox { margin-top: 1rem; } .infobox .stars { margin-top: .3rem; } .infolabel { margin: 0; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .news-card { max-width: 24rem; } .news-card small { display: block; line-height: 1.25; } .news-card a { color: var(--muted); } .news-team { color: var(--muted); font-size: .85rem; }
+
+.gc-inj { display: flex; flex-wrap: wrap; gap: .2rem .7rem; margin-top: .5rem; font-size: .8rem; } .gc-inj-item { color: var(--muted); cursor: pointer; } .gc-inj-item:hover { color: var(--text); text-decoration: underline; } .gc-inj small { opacity: .7; }

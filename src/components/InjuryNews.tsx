@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { NewsCat, NewsItem } from "../../shared/types";
+import type { Game, NewsCat, NewsItem } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useSpoilers } from "../lib/spoilers";
-import { fmtDate } from "../lib/util";
+import { fmtDate, surname } from "../lib/util";
 import { Face, TeamLogo } from "./ui";
 
 /** Headlines like "misses Sharks loss" give away a result, so they stay hidden in spoiler mode until clicked. */
@@ -101,18 +101,36 @@ export function InjuryBadge({ player }: { player: number }) {
 
 const etDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE", { timeZone: "America/New_York" });
 
-/** Injury stories reported on one game day, and what was still fresh in the days before (latest per player, not repeated). */
-export function injuriesAround(news: NewsItem[], date: string, teams?: string[]) {
-  const inj = news.filter((n) => n.cat === "injury" && (!teams || n.teams.some((t) => teams.includes(t))));
-  const on = inj.filter((n) => etDay(n.date) === date);
-  const seen = new Set(on.flatMap((n) => n.players));
-  const before: NewsItem[] = [];
-  for (const n of inj) {
+/** Headlines that say a player is back; a name alone would read as "injured". Heuristic. */
+const BACK = /\b(returns?|activated|cleared|debuts?|back in (the )?lineup)\b/i;
+
+/** One compact line on a game card: names of players with injury news for either team, linked to the story. */
+export function GameInjuries({ game }: { game: Pick<Game, "date" | "away" | "home"> }) {
+  const { news, players } = useData();
+  const from = new Date(Date.parse(game.date + "T12:00:00Z") - 3 * 86400e3).toISOString().slice(0, 10);
+  const seen = new Set<number>();
+  const rows: { pid: number; team: string; n: NewsItem }[] = [];
+  for (const n of news) {
+    if (n.cat !== "injury" || !n.teams.some((t) => t === game.away.abbrev || t === game.home.abbrev)) continue;
     const d = etDay(n.date);
-    if (d >= date || d < new Date(Date.parse(date + "T12:00:00Z") - 3 * 86400e3).toISOString().slice(0, 10)) continue;
-    if (n.players.length && n.players.every((p) => seen.has(p))) continue;
-    n.players.forEach((p) => seen.add(p));
-    before.push(n);
+    if (d > game.date || d < from) continue;
+    for (const pid of n.players) {
+      if (seen.has(pid) || !players[pid]?.n) continue;
+      seen.add(pid);
+      rows.push({ pid, team: n.teams.find((t) => t === game.away.abbrev || t === game.home.abbrev)!, n });
+    }
   }
-  return { on, before };
+  if (!rows.length) return null;
+  const open = (id: string) => window.open(`https://www.nhl.com/news/${id}`, "_blank", "noopener");
+  return (
+    <div className="gc-inj">
+      {rows.slice(0, 5).map(({ pid, team, n }) => (
+        <span key={pid} role="link" tabIndex={0} className="gc-inj-item" title={BACK.test(n.headline) ? "Back: open the story" : "Injury news: open the story"}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); open(n.id); }}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); open(n.id); } }}>
+          {BACK.test(n.headline) ? "✅" : "🩹"} {surname(players[pid].n)} <small>{team}</small>
+        </span>
+      ))}
+    </div>
+  );
 }

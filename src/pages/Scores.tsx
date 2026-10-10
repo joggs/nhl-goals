@@ -5,7 +5,7 @@ import { addDays, fmtDate, gameStatus, logo, surname } from "../lib/util";
 import { useFavorites } from "../lib/favorites";
 import { Chip, ClipModal, Flag, VideoModal, TvIcon } from "../components/ui";
 import { useSpoilers } from "../lib/spoilers";
-import { InjuryCards, injuriesAround } from "../components/InjuryNews";
+import { GameInjuries } from "../components/InjuryNews";
 import { gameVars } from "../lib/teamColors";
 import type { Game } from "../../shared/types";
 
@@ -69,6 +69,7 @@ function GameCard({ g }: { g: Game }) {
           {g.condensedClip && <button title="Condensed game, about 10 minutes" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSummary("long"); }}><TvIcon /> 10 min</button>}
         </div>
       )}
+      <GameInjuries game={g} />
       {summary && <VideoModal clip={summary === "short" ? g.recapClip : g.condensedClip} label="Game summary"
         caption={`${summary === "short" ? "Recap" : "Condensed game"}: ${g.away.name} at ${g.home.name}`} onClose={() => setSummary(null)} />}
       {!hid && playing && (() => { const x = g.goals.find((q) => q.id === playing); return x?.clip ? <ClipModal goal={x} onClose={() => setPlaying(null)} /> : null; })()}
@@ -77,7 +78,7 @@ function GameCard({ g }: { g: Game }) {
 }
 
 export default function Scores() {
-  const { games, anchor, season, loading, news } = useData();
+  const { games, anchor, season, loading } = useData();
   const { teams: favs } = useFavorites();
   const spoil = useSpoilers();
   const [sp, setSp] = useSearchParams();
@@ -94,7 +95,6 @@ export default function Scores() {
   }, [date]);
   const strip = Array.from({ length: 9 }, (_, i) => addDays(date, i - 4));
   const goals = day.reduce((a, g) => a + g.goals.length, 0);
-  const inj = injuriesAround(news, date, mine && favs.length ? favs : undefined);
   const anyHidden = day.some((g) => spoil.hidden(g));
   return (
     <section>
@@ -122,8 +122,6 @@ export default function Scores() {
       {loading ? <div className="spinner" /> : day.length === 0 ? (
         <p className="empty">No games {mine ? "for your teams " : ""}on this day{dates.size ? "." : ` in season ${season}.`}</p>
       ) : <div className="grid">{day.map((g) => <GameCard key={g.id} g={g} />)}</div>}
-      <InjuryCards title="Injuries reported this day" items={inj.on} />
-      <InjuryCards title="Earlier that week" items={inj.before} />
       {favs.length === 0 && <p className="muted hint">Tip: <Link to="/teams">pick favourite teams</Link> to filter scores and goals.</p>}
     </section>
   );
