@@ -8,12 +8,19 @@ import { TeamLogo } from "./ui";
 /** Headlines like "misses Sharks loss" give away a result, so they stay hidden in spoiler mode until clicked. */
 const RESULT = /\b(wins?|won|loss|losses|loses|lost|defeats?|beats?|falls?|overtime|OT|shootout|shutout|scores?|goals?|\d+-\d+)\b/i;
 
-export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: number; days: number; until?: string }) => {
+export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: number; days: number; until?: string; latestPerPlayer?: boolean }) => {
   const from = Date.now() - opts.days * 86400e3;
+  const seen = new Set<number>();
   return news.filter((n) =>
     Date.parse(n.date) >= from && (!opts.until || n.date.slice(0, 10) <= opts.until) &&
     (!opts.teams || n.teams.some((t) => opts.teams!.includes(t))) &&
-    (opts.player === undefined || n.players.includes(opts.player)));
+    (opts.player === undefined || n.players.includes(opts.player)))
+    .filter((n) => {
+      if (!opts.latestPerPlayer || !n.players.length) return true;
+      if (n.players.every((p) => seen.has(p))) return false;
+      n.players.forEach((p) => seen.add(p));
+      return true;
+    });
 };
 
 function Line({ n }: { n: NewsItem }) {
@@ -40,9 +47,8 @@ export function InjuryNews({ items, title = "Injuries & returns", max = 6 }: { i
   const teams = [...new Set(items.flatMap((n) => n.teams))];
   return (
     <div className="news">
-      <h3>{title} {items.length > 0 && teams.length <= 2 && teams.map((t) => <TeamLogo key={t} abbrev={t} size={16} />)}</h3>
+      <h3>{title} {teams.length <= 2 && teams.map((t) => <TeamLogo key={t} abbrev={t} size={16} />)}</h3>
       <ul>{items.slice(0, max).map((n) => <Line key={n.id} n={n} />)}</ul>
-      <small className="muted">From NHL.com news, updated every ~20 min. Return dates are not official.</small>
     </div>
   );
 }
