@@ -131,11 +131,16 @@ export interface EdgeData { season: number; boards: Record<EdgeBoardId, Record<E
  */
 export interface ShotFile { season: number; stride?: number; teams: string[]; games: number[]; types?: string[]; shots: number[] }
 
-/** An injury / return story from NHL.com's news feed. */
+/** Story types, in priority order when a story carries several tags. */
+export type NewsCat = "injury" | "transactions" | "recap" | "preview" | "other";
+
+/** A story from NHL.com's news feed. */
 export interface NewsItem {
   id: string;        // story slug, also the NHL.com path
   date: string;      // ISO UTC
   headline: string;
+  cat: NewsCat;
   teams: string[];   // team abbrevs the story is about
   players: number[]; // player ids it is tagged with
+  gameId?: number;   // set on recaps and previews
 }

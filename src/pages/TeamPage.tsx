@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import type { NewsCat } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useFavorites, useTheme } from "../lib/favorites";
 import { Face, Flag, StarButton, TeamLogo, Watermark } from "../components/ui";
@@ -8,12 +9,14 @@ import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
 import { TEAM_METRICS } from "./Edge";
 import { teamColor } from "../lib/teamColors";
+import { NewsList } from "../components/NewsList";
 import { InjuryNews, recentNews } from "../components/InjuryNews";
 import { fmtDate, ordinal } from "../lib/util";
 
 export default function TeamPage() {
   const { abbrev = "" } = useParams();
-  const [tab, setTab] = useState<"overview" | "players" | "results">("overview");
+  const [tab, setTab] = useState<"overview" | "players" | "results" | "news">("overview");
+  const [ncat, setNcat] = useState<NewsCat | "">("");
   const { teams, standings, goals, games, players, season, news } = useData();
   const { teams: favs } = useFavorites();
   const theme = useTheme();
@@ -66,7 +69,7 @@ export default function TeamPage() {
         <Link className="chip" to={`/goals?against=${abbrev}&range=season`}>Goals against {abbrev}</Link>
       </p>
       <div className="tabs-h2" role="tablist">
-        {([["overview", "Overview"], ["players", "Players"], ["results", "Results"]] as const).map(([k, l]) => (
+        {([["overview", "Overview"], ["players", "Players"], ["results", "Results"], ["news", "News"]] as const).map(([k, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>
         ))}
       </div>
@@ -126,6 +129,7 @@ export default function TeamPage() {
       )}
         </>
       )}
+      {tab === "news" && <NewsList items={news.filter((n) => n.teams.includes(abbrev))} cat={ncat} onCat={setNcat} />}
       {tab === "results" && (
         <>
       <h2>Results</h2>

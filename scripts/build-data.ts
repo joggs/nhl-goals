@@ -11,7 +11,7 @@
  * Finished games are cached in .cache/ and never re-fetched.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import type { NewsItem, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
+import type { NewsCat, NewsItem, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
 import { cached, getJson, pool, stats, web } from "./lib-nhl.js";
 
@@ -315,28 +315,49 @@ async function loadEdge(season: number, gt: 2 | 3): Promise<EdgeData> {
 }
 
 const FORGE = "https://forge-dapi.d3.nhle.com/v2/content/en-us/stories";
-const NEWS_DAYS = 30;
+const NEWS_DAYS = 10, INJURY_DAYS = 30;
 
-/** Injury and return stories from NHL.com's content API (the tag `injury`), newest first, duplicates by team sites merged. */
+const newsCat = (slugs: Set<string>): NewsCat =>
+  slugs.has("injury") ? "injury"
+  : ["trade", "transactions", "signing", "press-release", "waivers"].some((t) => slugs.has(t)) ? "transactions"
+  : ["game-recap", "postgame", "game-coverage"].some((t) => slugs.has(t)) ? "recap"
+  : ["game-preview", "pregame", "lineup", "season-preview"].some((t) => slugs.has(t)) ? "preview"
+  : "other";
+
+/** Pages through one tag of the content API until the stories get older than `days`. */
+async function storiesFor(tag: string, days: number): Promise<any[]> {
+  const cutoff = Date.now() - days * 86400e3;
+  const out: any[] = [];
+  for (let skip = 0; skip < 1500; skip += 100) {
+    const res = await getJson(`${FORGE}?tags.slug=${tag}&$limit=100&$skip=${skip}`);
+    const items: any[] = res.items ?? [];
+    out.push(...items.filter((s) => Date.parse(s.contentDate) >= cutoff));
+    if (items.length < 100 || Date.parse(items.at(-1).contentDate) < cutoff) break;
+  }
+  return out;
+}
+
+/** News from NHL.com's content API: all of the last days, injuries a month back. Team-site copies of the same story are merged. */
 async function loadNews(players: Map<number, PlayerInfo>): Promise<NewsItem[]> {
-  const res = await getJson(`${FORGE}?tags.slug=injury&$limit=100`);
-  const cutoff = Date.now() - NEWS_DAYS * 86400e3;
-  const seen = new Set<string>();
-  const out: NewsItem[] = [];
-  for (const s of res.items ?? []) {
-    const date: string = s.contentDate;
+  const stories = [...await storiesFor("news", NEWS_DAYS), ...await storiesFor("injury", INJURY_DAYS)];
+  const best = new Map<string, { item: NewsItem; nhl: boolean }>();
+  for (const s of stories) {
     const key = String(s.headline ?? "").trim().toLowerCase();
-    if (!date || !s.slug || !key || Date.parse(date) < cutoff || seen.has(key)) continue;
-    seen.add(key);
+    if (!s.contentDate || !s.slug || !key) continue;
     const tags: any[] = s.tags ?? [];
+    const slugs = new Set<string>(tags.map((t) => t.slug));
     const ids = tags.filter((t) => t.externalSourceName === "player").map((t) => Number(t.extraData?.playerId)).filter(Boolean);
     let teams = tags.filter((t) => t.externalSourceName === "team").map((t) => t.extraData?.abbreviation).filter(Boolean) as string[];
+    const cat = newsCat(slugs);
     // A story about one player often tags the opponent too; keep it on the player's own team.
-    const own = ids.length === 1 ? players.get(ids[0])?.t : undefined;
+    const own = cat === "injury" && ids.length === 1 ? players.get(ids[0])?.t : undefined;
     if (own && teams.includes(own)) teams = [own];
-    out.push({ id: s.slug, date, headline: String(s.headline).trim(), teams, players: ids });
+    const game = tags.find((t) => t.slug.startsWith("gameid-"))?.slug.slice(7);
+    const item: NewsItem = { id: s.slug, date: s.contentDate, headline: String(s.headline).trim(), cat, teams, players: ids, ...(game ? { gameId: Number(game) } : {}) };
+    const nhl = slugs.has("nhl-created"), old = best.get(key);
+    if (!old || (nhl && !old.nhl)) best.set(key, { item, nhl });
   }
-  return out.sort((a, b) => b.date.localeCompare(a.date));
+  return [...best.values()].map((b) => b.item).sort((a, b) => b.date.localeCompare(a.date));
 }
 
 async function main() {
@@ -388,7 +409,7 @@ async function main() {
   try {
     const news = await loadNews(players);
     await writeFile(`${OUT}/news.json`, JSON.stringify(news));
-    console.log(`  wrote ${news.length} injury stories`);
+    console.log(`  wrote ${news.length} news stories`);
   } catch (e) { console.warn("news failed", (e as Error).message); await writeFile(`${OUT}/news.json`, "[]").catch(() => {}); }
 
   console.log("Standings + teams…");

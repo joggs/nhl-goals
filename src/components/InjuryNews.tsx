@@ -1,18 +1,26 @@
 import { useState } from "react";
-import type { NewsItem } from "../../shared/types";
+import type { NewsCat, NewsItem } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useSpoilers } from "../lib/spoilers";
 import { fmtDate } from "../lib/util";
 import { Face, TeamLogo } from "./ui";
 
 /** Headlines like "misses Sharks loss" give away a result, so they stay hidden in spoiler mode until clicked. */
+const RESULT_LOOSE = /\b(wins?|won|loss|losses|loses|lost|defeats?|beats?|falls?|overtime|OT|shootout|shutout|\d+-\d+)\b/i;
 const RESULT = /\b(wins?|won|loss|losses|loses|lost|defeats?|beats?|falls?|overtime|OT|shootout|shutout|scores?|goals?|\d+-\d+)\b/i;
 
-export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: number; days: number; until?: string; latestPerPlayer?: boolean }) => {
+/** Should this story stay hidden until clicked? Recaps always, anything that reads like a result, anything about a game still hidden. */
+export function useRisky() {
+  const sp = useSpoilers();
+  const { gameById } = useData();
+  return (n: NewsItem) => sp.on && (n.cat === "recap" || (n.cat === "injury" ? RESULT : RESULT_LOOSE).test(n.headline) || (!!n.gameId && sp.hidden(gameById.get(n.gameId))));
+}
+
+export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: number; days: number; until?: string; latestPerPlayer?: boolean; cat?: NewsCat }) => {
   const from = Date.now() - opts.days * 86400e3;
   const seen = new Set<number>();
   return news.filter((n) =>
-    Date.parse(n.date) >= from && (!opts.until || n.date.slice(0, 10) <= opts.until) &&
+    n.cat === (opts.cat ?? "injury") && Date.parse(n.date) >= from && (!opts.until || n.date.slice(0, 10) <= opts.until) &&
     (!opts.teams || n.teams.some((t) => opts.teams!.includes(t))) &&
     (opts.player === undefined || n.players.includes(opts.player)))
     .filter((n) => {
@@ -25,9 +33,9 @@ export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: 
 
 function Line({ n }: { n: NewsItem }) {
   const { players } = useData();
-  const sp = useSpoilers();
+  const isRisky = useRisky();
   const [open, setOpen] = useState(false);
-  const risky = sp.on && !open && RESULT.test(n.headline);
+  const risky = !open && isRisky(n);
   const who = n.players.length === 1 ? players[n.players[0]]?.n : undefined;
   return (
     <li className="news-row">
@@ -45,9 +53,9 @@ function Line({ n }: { n: NewsItem }) {
 /** Same look as the three-stars cards: face, name, one line of news. */
 function Card({ n }: { n: NewsItem }) {
   const { players } = useData();
-  const sp = useSpoilers();
+  const isRisky = useRisky();
   const [open, setOpen] = useState(false);
-  const risky = sp.on && !open && RESULT.test(n.headline);
+  const risky = !open && isRisky(n);
   const pid = n.players.length === 1 ? n.players[0] : undefined;
   const who = pid ? players[pid]?.n : undefined;
   const body = risky
