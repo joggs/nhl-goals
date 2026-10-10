@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useData } from "../lib/data";
 import { useFavorites, useTheme } from "../lib/favorites";
@@ -13,6 +13,7 @@ import { fmtDate, ordinal } from "../lib/util";
 
 export default function TeamPage() {
   const { abbrev = "" } = useParams();
+  const [tab, setTab] = useState<"overview" | "players" | "results">("overview");
   const { teams, standings, goals, games, players, season, news } = useData();
   const { teams: favs } = useFavorites();
   const theme = useTheme();
@@ -53,6 +54,7 @@ export default function TeamPage() {
           <h1>{team.name}</h1>
           <p className="muted">{team.division} Division · {team.conference} Conference{r ? ` · ${ordinal(r.divRank)} in division${r.wc > 0 && r.wc <= 2 ? ` · wild card ${r.wc}` : ""}` : ""}</p>
           {r && <p><b>{r.w}-{r.l}-{r.otl}</b> · <b>{r.pts}</b> pts · GF {r.gf} · GA {r.ga} · L10 {r.l10}{r.streak && <> · streak <b>{r.streak}</b></>}</p>}
+          <InjuryNews title="" max={3} items={recentNews(news, { teams: [abbrev], days: 14, latestPerPlayer: true })} />
         </div>
         <div className="team-hero-tools">
           <StarButton abbrev={abbrev} />
@@ -63,7 +65,13 @@ export default function TeamPage() {
         <Link className="chip on" to={`/goals?team=${abbrev}&range=season`}>All goals by {abbrev}</Link>{" "}
         <Link className="chip" to={`/goals?against=${abbrev}&range=season`}>Goals against {abbrev}</Link>
       </p>
-      <InjuryNews items={recentNews(news, { teams: [abbrev], days: 21 })} />
+      <div className="tabs-h2" role="tablist">
+        {([["overview", "Overview"], ["players", "Players"], ["results", "Results"]] as const).map(([k, l]) => (
+          <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>
+        ))}
+      </div>
+      {tab === "overview" && (
+        <>
       <div className="tiles">
         {([["Goals for", d.gf.length], ["Goals against", d.ga.length], ["Power-play", d.pp], ["Short-handed", d.sh], ["Empty-net", d.en], ["Overtime", d.ot], ["Hat tricks", d.hat], ["Games won", wins]] as const).map(([k, v]) => (
           <div key={k} className="tile"><b>{v}</b><small>{k}</small></div>
@@ -94,6 +102,10 @@ export default function TeamPage() {
         <div><h3>Where they score</h3><ShotMap goals={d.gf} pick={pickFor} /></div>
         <div><h3>Where they concede</h3><ShotMap goals={d.ga} pick={pickAgainst} /></div>
       </div>
+        </>
+      )}
+      {tab === "players" && (
+        <>
       <h2>Scoring leaders</h2>
       {d.players.length === 0 ? <p className="empty">No goals yet.</p> : (
         <table className="table">
@@ -112,6 +124,10 @@ export default function TeamPage() {
           </tbody>
         </table>
       )}
+        </>
+      )}
+      {tab === "results" && (
+        <>
       <h2>Results</h2>
       {d.played.length === 0 ? <p className="empty">No games played yet.</p> : (
         <ul className="g-list">
@@ -129,6 +145,8 @@ export default function TeamPage() {
             );
           })}
         </ul>
+      )}
+        </>
       )}
     </section>
   );

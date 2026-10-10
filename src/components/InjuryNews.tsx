@@ -47,7 +47,7 @@ export function InjuryNews({ items, title = "Injuries & returns", max = 6 }: { i
   const teams = [...new Set(items.flatMap((n) => n.teams))];
   return (
     <div className="news">
-      <h3>{title} {teams.length <= 2 && teams.map((t) => <TeamLogo key={t} abbrev={t} size={16} />)}</h3>
+      {title && <h3>{title} {teams.length <= 2 && teams.map((t) => <TeamLogo key={t} abbrev={t} size={16} />)}</h3>}
       <ul>{items.slice(0, max).map((n) => <Line key={n.id} n={n} />)}</ul>
     </div>
   );
