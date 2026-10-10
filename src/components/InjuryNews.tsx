@@ -39,7 +39,7 @@ function Line({ n }: { n: NewsItem }) {
   const who = n.players.length === 1 ? players[n.players[0]]?.n : undefined;
   return (
     <li className="news-row">
-      <span aria-hidden="true">🩹</span>
+      <span aria-hidden="true">🚑</span>
       {risky ? (
         <span>{who ?? n.teams.join(" / ")}: injury news <button className="chip" onClick={() => setOpen(true)} title="The headline may mention a result">Show</button></span>
       ) : (
@@ -63,7 +63,7 @@ function Card({ n }: { n: NewsItem }) {
     : <small><a href={`https://www.nhl.com/news/${n.id}`} target="_blank" rel="noreferrer">{n.headline}</a></small>;
   return (
     <div className="star-card news-card">
-      <span aria-hidden="true">🩹</span>
+      <span aria-hidden="true">🚑</span>
       {pid && players[pid]?.h ? <Face id={pid} size={44} /> : <TeamLogo abbrev={n.teams[0]} size={36} />}
       <div><b>{who ?? n.teams.join(" / ")}</b>{who && n.teams[0] && <span className="news-team"> {n.teams[0]}</span>}<br />{body}</div>
     </div>
@@ -128,7 +128,7 @@ export function GameInjuries({ game }: { game: Pick<Game, "date" | "away" | "hom
         <span key={pid} role="link" tabIndex={0} className="gc-inj-item" title={BACK.test(n.headline) ? "Back: open the story" : "Injury news: open the story"}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); open(n.id); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); open(n.id); } }}>
-          <i aria-hidden="true">{BACK.test(n.headline) ? "✅" : "🩹"}</i> <b>{surname(players[pid].n)}</b> <img src={logo(team)} alt={team} />
+          <i aria-hidden="true">{BACK.test(n.headline) ? "✅" : "🚑"}</i> <b>{surname(players[pid].n)}</b> <img src={logo(team)} alt={team} />
         </span>
       ))}
     </div>

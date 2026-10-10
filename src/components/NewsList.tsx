@@ -5,7 +5,7 @@ import { Chip, TeamLogo } from "./ui";
 import { useRisky } from "./InjuryNews";
 
 export const CATS: [NewsCat, string, string][] = [
-  ["injury", "Injuries", "🩹"], ["transactions", "Transactions", "🔁"], ["recap", "Recaps", "📰"], ["preview", "Previews", "🔭"], ["other", "Features", "✍️"],
+  ["injury", "Injuries", "🚑"], ["transactions", "Transactions", "🔁"], ["recap", "Recaps", "📰"], ["preview", "Previews", "🔭"], ["other", "Features", "✍️"],
 ];
 const label = (c: NewsCat) => CATS.find((x) => x[0] === c)!;
 
