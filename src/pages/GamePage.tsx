@@ -6,7 +6,7 @@ import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus, logo } from "../lib/util";
 import { Chip, ClipPlayer, Face, GoalCard, TeamLogo } from "../components/ui";
 import { GameShotMap } from "../components/GameShotMap";
-import { InjuryNews, recentNews } from "../components/InjuryNews";
+import { InjuryCards, recentNews } from "../components/InjuryNews";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
 import { flag } from "../lib/flags";
@@ -15,7 +15,7 @@ export default function GamePage() {
   const { id } = useParams();
   const { gameById, loading, players, news } = useData();
   const [nat, setNat] = useState<string | null>(null);
-  const [tab, setTab] = useState<"goals" | "assists" | "map" | "news">("goals");
+  const [tab, setTab] = useState<"goals" | "assists" | "map">("goals");
   const [text, setText] = useState(false);
   const [vid, setVid] = useState<"short" | "long" | null>(null);
   const sp = useSpoilers();
@@ -75,6 +75,7 @@ export default function GamePage() {
       {vid && ((vid === "short" ? g.recapClip : g.condensedClip)
         ? <ClipPlayer clip={(vid === "short" ? g.recapClip : g.condensedClip)!} />
         : <p className="muted">That video isn't available yet.</p>)}
+      <InjuryCards items={injuries} />
       {hid ? (
         <>
           <div className="gate">
@@ -82,11 +83,8 @@ export default function GamePage() {
             <p className="muted">Result, recap text and goals are hidden. Watch the 5 or 10 min video above to see the game.</p>
             <button className="chip on" onClick={() => sp.reveal([g.id])}>Reveal this game</button>
           </div>
-          <InjuryNews items={injuries} />
         </>
-      ) : !started ? (
-        <InjuryNews items={injuries} />
-      ) : (
+      ) : !started ? null : (
         <>
       {text && (
         <div className="recap">
@@ -95,18 +93,19 @@ export default function GamePage() {
         </div>
       )}
       {g.stars.length > 0 && (
-        <div className="stars">{g.stars.map((s) => (
-          <Link key={s.id} to={`/player/${s.id}`} className="star-card"><span className="starno">{"★".repeat(4 - s.star)}</span><Face id={s.id} size={44} /><b>{s.name}</b><small>{s.team}</small></Link>
-        ))}</div>
+        <div className="infobox">
+          <h4 className="infolabel">Three stars</h4>
+          <div className="stars">{g.stars.map((s) => (
+            <Link key={s.id} to={`/player/${s.id}`} className="star-card"><span className="starno">{"★".repeat(4 - s.star)}</span><Face id={s.id} size={44} /><b>{s.name}</b><small>{s.team}</small></Link>
+          ))}</div>
+        </div>
       )}
       <div className="tabs-h2" role="tablist">
         <button role="tab" aria-selected={tab === "goals"} className={tab === "goals" ? "on" : ""} onClick={() => setTab("goals")}>Goals ({g.goals.filter((x) => !nat || is(x.scorer.id)).length})</button>
         {g.goals.length > 0 && <button role="tab" aria-selected={tab === "assists"} className={tab === "assists" ? "on" : ""} onClick={() => setTab("assists")}>Assists ({g.goals.reduce((n, x) => n + x.assists.filter((a) => !nat || is(a.id)).length, 0)})</button>}
         <button role="tab" aria-selected={tab === "map"} className={tab === "map" ? "on" : ""} onClick={() => setTab("map")}>Shot map</button>
-        {injuries.length > 0 && <button role="tab" aria-selected={tab === "news"} className={tab === "news" ? "on" : ""} onClick={() => setTab("news")}>Injuries ({injuries.length})</button>}
       </div>
       {tab === "map" && <GameShotMap game={g} />}
-      {tab === "news" && <InjuryNews items={injuries} />}
       {(tab === "goals" || tab === "assists") && (
         <>
       {g.goals.length > 0 && (

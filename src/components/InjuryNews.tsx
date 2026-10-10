@@ -3,7 +3,7 @@ import type { NewsItem } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useSpoilers } from "../lib/spoilers";
 import { fmtDate } from "../lib/util";
-import { TeamLogo } from "./ui";
+import { Face, TeamLogo } from "./ui";
 
 /** Headlines like "misses Sharks loss" give away a result, so they stay hidden in spoiler mode until clicked. */
 const RESULT = /\b(wins?|won|loss|losses|loses|lost|defeats?|beats?|falls?|overtime|OT|shootout|shutout|scores?|goals?|\d+-\d+)\b/i;
@@ -39,6 +39,36 @@ function Line({ n }: { n: NewsItem }) {
       )}
       <small className="muted">{fmtDate(n.date.slice(0, 10), { day: "numeric", month: "short" })}</small>
     </li>
+  );
+}
+
+/** Same look as the three-stars cards: face, name, one line of news. */
+function Card({ n }: { n: NewsItem }) {
+  const { players } = useData();
+  const sp = useSpoilers();
+  const [open, setOpen] = useState(false);
+  const risky = sp.on && !open && RESULT.test(n.headline);
+  const pid = n.players.length === 1 ? n.players[0] : undefined;
+  const who = pid ? players[pid]?.n : undefined;
+  const body = risky
+    ? <small>Injury news <button className="chip" onClick={() => setOpen(true)} title="The headline may mention a result">Show</button></small>
+    : <small><a href={`https://www.nhl.com/news/${n.id}`} target="_blank" rel="noreferrer">{n.headline}</a></small>;
+  return (
+    <div className="star-card news-card">
+      <span aria-hidden="true">🩹</span>
+      {pid && players[pid]?.h ? <Face id={pid} size={44} /> : <TeamLogo abbrev={n.teams[0]} size={36} />}
+      <div><b>{who ?? n.teams.join(" / ")}</b>{n.teams[0] && <span className="news-team"> {n.teams[0]}</span>}<br />{body}</div>
+    </div>
+  );
+}
+
+export function InjuryCards({ items }: { items: NewsItem[] }) {
+  if (!items.length) return null;
+  return (
+    <div className="infobox">
+      <h4 className="infolabel">Injuries</h4>
+      <div className="stars">{items.map((n) => <Card key={n.id} n={n} />)}</div>
+    </div>
   );
 }
 
