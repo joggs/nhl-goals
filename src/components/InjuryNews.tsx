@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Game, NewsCat, NewsItem } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useSpoilers } from "../lib/spoilers";
-import { fmtDate, surname } from "../lib/util";
+import { fmtDate, logo, surname } from "../lib/util";
 import { Face, TeamLogo } from "./ui";
 
 /** Headlines like "misses Sharks loss" give away a result, so they stay hidden in spoiler mode until clicked. */
@@ -128,7 +128,7 @@ export function GameInjuries({ game }: { game: Pick<Game, "date" | "away" | "hom
         <span key={pid} role="link" tabIndex={0} className="gc-inj-item" title={BACK.test(n.headline) ? "Back: open the story" : "Injury news: open the story"}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); open(n.id); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); open(n.id); } }}>
-          {BACK.test(n.headline) ? "✅" : "🩹"} {surname(players[pid].n)} <small>{team}</small>
+          <i aria-hidden="true">{BACK.test(n.headline) ? "✅" : "🩹"}</i> <b>{surname(players[pid].n)}</b> <img src={logo(team)} alt={team} />
         </span>
       ))}
     </div>

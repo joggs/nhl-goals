@@ -324,4 +324,8 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
 .infobox { margin-top: 1rem; } .infobox .stars { margin-top: .3rem; } .infolabel { margin: 0; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .news-card { max-width: 24rem; } .news-card small { display: block; line-height: 1.25; } .news-card a { color: var(--muted); } .news-team { color: var(--muted); font-size: .85rem; }
 
-.gc-inj { display: flex; flex-wrap: wrap; gap: .2rem .7rem; margin-top: .5rem; font-size: .8rem; } .gc-inj-item { color: var(--muted); cursor: pointer; } .gc-inj-item:hover { color: var(--text); text-decoration: underline; } .gc-inj small { opacity: .7; }
+.gc-inj { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: auto; padding-top: .5rem; border-top: 1px dashed var(--line); }
+.gc-inj + .game-videos { margin-top: .4rem; padding-top: 0; border-top: 0; }
+.gc-inj-item { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: .2rem .5rem; font-size: .78rem; cursor: pointer; transition: color .1s, border-color .1s; }
+.gc-inj-item b { font-weight: 600; } .gc-inj-item i { font-style: normal; font-size: .72rem; } .gc-inj-item img { width: 14px; height: 14px; object-fit: contain; }
+.gc-inj-item:hover { color: var(--text); border-color: var(--muted); }

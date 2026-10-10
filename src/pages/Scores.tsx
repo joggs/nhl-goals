@@ -63,13 +63,13 @@ function GameCard({ g }: { g: Game }) {
           ))}
         </ul>
       )}
+      <GameInjuries game={g} />
       {(g.recapClip || g.condensedClip) && (
         <div className="game-videos">
           {g.recapClip && <button title="Recap, about 5 minutes" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSummary("short"); }}><TvIcon /> 5 min</button>}
           {g.condensedClip && <button title="Condensed game, about 10 minutes" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSummary("long"); }}><TvIcon /> 10 min</button>}
         </div>
       )}
-      <GameInjuries game={g} />
       {summary && <VideoModal clip={summary === "short" ? g.recapClip : g.condensedClip} label="Game summary"
         caption={`${summary === "short" ? "Recap" : "Condensed game"}: ${g.away.name} at ${g.home.name}`} onClose={() => setSummary(null)} />}
       {!hid && playing && (() => { const x = g.goals.find((q) => q.id === playing); return x?.clip ? <ClipModal goal={x} onClose={() => setPlaying(null)} /> : null; })()}
