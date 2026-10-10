@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Game, Goal, Manifest, PlayerInfo, StandingRow, TeamInfo } from "../../shared/types";
+import type { Game, Goal, Manifest, NewsItem, PlayerInfo, StandingRow, TeamInfo } from "../../shared/types";
 
 const base = import.meta.env.BASE_URL;
 const getJson = async <T,>(name: string): Promise<T> => {
@@ -13,6 +13,7 @@ export interface Dataset {
   teams: TeamInfo[];
   standings: StandingRow[];
   players: Record<string, PlayerInfo>;
+  news: NewsItem[];
   games: Game[];           // selected season(s)
   goals: Goal[];
   gameById: Map<number, Game>;
@@ -33,7 +34,7 @@ export const useData = () => {
 const seasonCache = new Map<number, Game[]>();
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [boot, setBoot] = useState<{ manifest: Manifest; teams: TeamInfo[]; players: Record<string, PlayerInfo> } | null>(null);
+  const [boot, setBoot] = useState<{ manifest: Manifest; teams: TeamInfo[]; players: Record<string, PlayerInfo>; news: NewsItem[] } | null>(null);
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const [error, setError] = useState<string>();
   const [season, setSeasonState] = useState<number>(0);
@@ -44,8 +45,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     Promise.all([
       getJson<Manifest>("manifest.json"), getJson<TeamInfo[]>("teams.json"),
       getJson<Record<string, PlayerInfo>>("players.json"),
-    ]).then(([manifest, teams, players]) => {
-      setBoot({ manifest, teams, players });
+      getJson<NewsItem[]>("news.json").catch(() => [] as NewsItem[]),
+    ]).then(([manifest, teams, players, news]) => {
+      setBoot({ manifest, teams, players, news });
       const saved = Number(localStorage.getItem("season"));
       setSeasonState(manifest.seasons.some((s) => s.id === saved) ? saved : manifest.currentSeason);
     }).catch((e) => setError(String(e)));

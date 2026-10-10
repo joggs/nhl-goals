@@ -6,13 +6,14 @@ import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus, logo } from "../lib/util";
 import { Chip, ClipPlayer, Face, GoalCard, TeamLogo } from "../components/ui";
 import { GameShotMap } from "../components/GameShotMap";
+import { InjuryNews, recentNews } from "../components/InjuryNews";
 import { useSpoilers } from "../lib/spoilers";
 import { gameVars } from "../lib/teamColors";
 import { flag } from "../lib/flags";
 
 export default function GamePage() {
   const { id } = useParams();
-  const { gameById, loading, players } = useData();
+  const { gameById, loading, players, news } = useData();
   const [nat, setNat] = useState<string | null>(null);
   const [by, setBy] = useState<"scorer" | "assists">("scorer");
   const [vid, setVid] = useState<"short" | "long" | null>(null);
@@ -62,6 +63,7 @@ export default function GamePage() {
           </div>
         )] : [el])}
       </div>
+      <InjuryNews title={g.finished ? "Injury news before the game" : "Injury news"} items={recentNews(news, { teams: [g.away.abbrev, g.home.abbrev], days: 14, until: g.finished ? g.date : undefined })} />
       <div className="row">
         <Chip active={vid === "short"} onClick={() => setVid(vid === "short" ? null : "short")} title="~5 min recap video">▶ Short summary</Chip>
         <Chip active={vid === "long"} onClick={() => setVid(vid === "long" ? null : "long")} title="~10 min condensed game">▶ Full summary</Chip>

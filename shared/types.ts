@@ -130,3 +130,12 @@ export interface EdgeData { season: number; boards: Record<EdgeBoardId, Record<E
  * 0 even, 1 power play, 2 short-handed. Period 4+ is overtime.
  */
 export interface ShotFile { season: number; stride?: number; teams: string[]; games: number[]; types?: string[]; shots: number[] }
+
+/** An injury / return story from NHL.com's news feed. */
+export interface NewsItem {
+  id: string;        // story slug, also the NHL.com path
+  date: string;      // ISO UTC
+  headline: string;
+  teams: string[];   // team abbrevs the story is about
+  players: number[]; // player ids it is tagged with
+}

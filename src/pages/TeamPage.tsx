@@ -8,11 +8,12 @@ import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
 import { TEAM_METRICS } from "./Edge";
 import { teamColor } from "../lib/teamColors";
+import { InjuryNews, recentNews } from "../components/InjuryNews";
 import { fmtDate, ordinal } from "../lib/util";
 
 export default function TeamPage() {
   const { abbrev = "" } = useParams();
-  const { teams, standings, goals, games, players, season } = useData();
+  const { teams, standings, goals, games, players, season, news } = useData();
   const { teams: favs } = useFavorites();
   const theme = useTheme();
   const { gameById } = useData();
@@ -62,6 +63,7 @@ export default function TeamPage() {
         <Link className="chip on" to={`/goals?team=${abbrev}&range=season`}>All goals by {abbrev}</Link>{" "}
         <Link className="chip" to={`/goals?against=${abbrev}&range=season`}>Goals against {abbrev}</Link>
       </p>
+      <InjuryNews items={recentNews(news, { teams: [abbrev], days: 21 })} />
       <div className="tiles">
         {([["Goals for", d.gf.length], ["Goals against", d.ga.length], ["Power-play", d.pp], ["Short-handed", d.sh], ["Empty-net", d.en], ["Overtime", d.ot], ["Hat tricks", d.hat], ["Games won", wins]] as const).map(([k, v]) => (
           <div key={k} className="tile"><b>{v}</b><small>{k}</small></div>

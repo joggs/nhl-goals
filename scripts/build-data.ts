@@ -11,9 +11,9 @@
  * Finished games are cached in .cache/ and never re-fetched.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import type { EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
+import type { NewsItem, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
-import { cached, pool, stats, web } from "./lib-nhl.js";
+import { cached, getJson, pool, stats, web } from "./lib-nhl.js";
 
 const OUT = "public/data";
 const args = process.argv.slice(2);
@@ -314,6 +314,31 @@ async function loadEdge(season: number, gt: 2 | 3): Promise<EdgeData> {
   return { season, boards, teams };
 }
 
+const FORGE = "https://forge-dapi.d3.nhle.com/v2/content/en-us/stories";
+const NEWS_DAYS = 30;
+
+/** Injury and return stories from NHL.com's content API (the tag `injury`), newest first, duplicates by team sites merged. */
+async function loadNews(players: Map<number, PlayerInfo>): Promise<NewsItem[]> {
+  const res = await getJson(`${FORGE}?tags.slug=injury&$limit=100`);
+  const cutoff = Date.now() - NEWS_DAYS * 86400e3;
+  const seen = new Set<string>();
+  const out: NewsItem[] = [];
+  for (const s of res.items ?? []) {
+    const date: string = s.contentDate;
+    const key = String(s.headline ?? "").trim().toLowerCase();
+    if (!date || !s.slug || !key || Date.parse(date) < cutoff || seen.has(key)) continue;
+    seen.add(key);
+    const tags: any[] = s.tags ?? [];
+    const ids = tags.filter((t) => t.externalSourceName === "player").map((t) => Number(t.extraData?.playerId)).filter(Boolean);
+    let teams = tags.filter((t) => t.externalSourceName === "team").map((t) => t.extraData?.abbreviation).filter(Boolean) as string[];
+    // A story about one player often tags the opponent too; keep it on the player's own team.
+    const own = ids.length === 1 ? players.get(ids[0])?.t : undefined;
+    if (own && teams.includes(own)) teams = [own];
+    out.push({ id: s.slug, date, headline: String(s.headline).trim(), teams, players: ids });
+  }
+  return out.sort((a, b) => b.date.localeCompare(a.date));
+}
+
 async function main() {
   await mkdir(OUT, { recursive: true });
   const cur = await currentSeasonId();
@@ -359,6 +384,12 @@ async function main() {
     const c = await stats("/country");
     for (const r of c.data ?? []) manifest.countries[r.country3Code] = r.countryName;
   } catch (e) { console.warn("country list failed", (e as Error).message); }
+
+  try {
+    const news = await loadNews(players);
+    await writeFile(`${OUT}/news.json`, JSON.stringify(news));
+    console.log(`  wrote ${news.length} injury stories`);
+  } catch (e) { console.warn("news failed", (e as Error).message); await writeFile(`${OUT}/news.json`, "[]").catch(() => {}); }
 
   console.log("Standings + teams…");
   const mapRows = (st: any): StandingRow[] => (st.standings ?? []).map((r: any) => ({

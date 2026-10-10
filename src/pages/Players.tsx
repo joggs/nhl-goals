@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { SpoilerGate } from "../lib/spoilers";
 import { useData } from "../lib/data";
 import { rangeBounds, useFilteredGoals, useGoalFilter } from "../lib/filters";
+import { InjuryBadge } from "../components/InjuryNews";
 import { FilterBar } from "../components/FilterBar";
 import { Face, Flag, GoalCard, TeamLogo, Watermark } from "../components/ui";
 import { ShotMap } from "../components/ShotMap";
@@ -160,6 +161,7 @@ export function PlayerPage() {
         <Face id={pid} size={96} />
         <div>
           <h1>{name}</h1>
+          <InjuryBadge player={pid} />
           <p className="muted"><Flag code={p?.nat} /> {p?.nat ? manifest.countries[p.nat] ?? p.nat : "Unknown"} · {p?.pos} {p?.t && <>· <TeamLogo abbrev={p.t} size={18} /> {p.t}</>}</p>
           <p><b>{scored.length}</b> goals · <b>{assisted.length}</b> assists in range · <b>{scored.filter((g) => g.strength === "PP").length}</b> PP · <b>{scored.filter((g) => g.tags.includes("gwg")).length}</b> GWG</p>
         </div>
