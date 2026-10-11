@@ -11,7 +11,7 @@
  * Finished games are cached in .cache/ and never re-fetched.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import type { NewsCat, NewsItem, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
+import type { NewsCat, NewsItem, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, ShootoutGoal, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
 import { cached, getJson, pool, stats, web } from "./lib-nhl.js";
 
@@ -104,8 +104,14 @@ async function loadGame(sg: SchedGame, players: Map<number, PlayerInfo>, shots: 
 
   // Only finished games are cached on disk; live ones are refetched each run.
   const pbp = await cached(`.cache/pbp-${sg.id}.json`, finished, () => web(`/gamecenter/${sg.id}/play-by-play`));
-  const fresh = finished ? await cached(`.cache/landing-${sg.id}.json`, true, () => web(`/gamecenter/${sg.id}/landing`)) : landing;
+  let fresh = finished ? await cached(`.cache/landing-${sg.id}.json`, true, () => web(`/gamecenter/${sg.id}/landing`)) : landing;
   // (the first landing call above was uncached; this stores the final version)
+  // The shootout winner's clip can arrive after the game is cached, so recent games without it are refetched.
+  const soEvents = (f: any): any[] => { const so = f.summary?.shootout; return (Array.isArray(so) ? so : so?.events) ?? []; };
+  if (finished && soEvents(fresh).some((e) => e.gameWinner && !e.highlightClip) && Date.now() - new Date(landing.startTimeUTC).getTime() < 3 * 86400e3) {
+    fresh = await web(`/gamecenter/${sg.id}/landing`);
+    await writeFile(`.cache/landing-${sg.id}.json`, JSON.stringify(fresh));
+  }
 
   const roster = new Map<number, { teamId: number; name: string; pos: string; head?: string; last: string; first: string }>();
   for (const r of pbp.rosterSpots ?? []) {
@@ -191,6 +197,13 @@ async function loadGame(sg: SchedGame, players: Map<number, PlayerInfo>, shots: 
     };
     base.goals.push(goal);
   }
+
+  const so: ShootoutGoal[] = soEvents(fresh).filter((e) => e.result === "goal").map((e) => ({
+    round: Math.ceil(e.sequence / 2), team: e.teamAbbrev?.default ?? e.teamAbbrev, shotType: e.shotType, winner: !!e.gameWinner,
+    scorer: { id: e.playerId, name: roster.get(e.playerId)?.name ?? `${e.firstName?.default ?? ""} ${e.lastName?.default ?? ""}`.trim() },
+    clip: e.highlightClip, clipUrl: e.highlightClipSharingUrl,
+  }));
+  if (so.length) base.shootout = so;
 
   base.stars = (fresh.summary?.threeStars ?? []).map((s: any): Star => ({
     id: s.playerId, name: s.name?.default ?? "", team: s.teamAbbrev, star: s.star, pos: s.position,

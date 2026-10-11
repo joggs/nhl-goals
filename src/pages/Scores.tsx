@@ -38,7 +38,7 @@ function GameCard({ g }: { g: Game }) {
         <Side t={g.home} win={homeWon} />
       </div>
       {hid && <button className="reveal-mini" onClick={(e) => { e.preventDefault(); sp.reveal([g.id]); }}>Reveal result</button>}
-      {!hid && g.goals.length > 0 && (
+      {!hid && (g.goals.length > 0 || !!g.shootout?.length) && (
         <ul className="mini-goals">
           {g.goals.map((x, i) => (
             <Fragment key={x.id}>
@@ -61,6 +61,28 @@ function GameCard({ g }: { g: Game }) {
             </li>
             </Fragment>
           ))}
+          {g.shootout?.length ? <li className="period-sep" aria-hidden="true"><span>SO</span></li> : null}
+          {g.shootout?.map((x) => {
+            const key = `so-${x.round}-${x.scorer.id}`;
+            return (
+              <li key={key} className="row-band" style={{ "--tc": x.team === g.away.abbrev ? "var(--ta)" : "var(--th)" } as React.CSSProperties} title={`${x.team} shootout goal`}>
+                <img className="band-logo" src={logo(x.team)} alt={x.team} />
+                <div className="goal-line">
+                  <b className="c-name" role="link" tabIndex={0} title={`${x.scorer.name}'s page`}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/player/${x.scorer.id}`); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); navigate(`/player/${x.scorer.id}`); } }}>{surname(x.scorer.name)}</b>
+                  <small className="c-score" />
+                  <small className="c-time" title={`Shootout round ${x.round}`}>R{x.round}</small>
+                  <small className="c-tag">{x.winner ? "GW" : ""}</small>
+                </div>
+                <Flag code={players[x.scorer.id]?.nat} />
+                {x.clip && (
+                  <button className={`tv mini${playing === key ? " on" : ""}`} title="Watch the shootout goal here" aria-label="Play shootout goal video"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(playing === key ? null : key); }}><TvIcon /></button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
       <GameInjuries game={g} />
@@ -73,6 +95,10 @@ function GameCard({ g }: { g: Game }) {
       {summary && <VideoModal clip={summary === "short" ? g.recapClip : g.condensedClip} label="Game summary"
         caption={`${summary === "short" ? "Recap" : "Condensed game"}: ${g.away.name} at ${g.home.name}`} onClose={() => setSummary(null)} />}
       {!hid && playing && (() => { const x = g.goals.find((q) => q.id === playing); return x?.clip ? <ClipModal goal={x} onClose={() => setPlaying(null)} /> : null; })()}
+      {!hid && playing?.startsWith("so-") && (() => {
+        const x = g.shootout?.find((q) => `so-${q.round}-${q.scorer.id}` === playing);
+        return x?.clip ? <VideoModal clip={x.clip} pageUrl={x.clipUrl} caption={`${x.scorer.name} wins it in the shootout`} onClose={() => setPlaying(null)} /> : null;
+      })()}
     </Link>
   );
 }

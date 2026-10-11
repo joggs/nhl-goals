@@ -33,6 +33,17 @@ export interface Goal {
   tags: string[];         // gwg, otwinner, hattrick, shorthanded, powerplay, emptynet, penaltyshot, go-ahead, tying, ...
 }
 
+/** A goal in the shootout. Not counted as a goal or point; NHL only posts video of the deciding one. */
+export interface ShootoutGoal {
+  round: number;         // shootout round, 1-based
+  team: string;
+  scorer: Person;
+  shotType?: string;
+  winner: boolean;       // the deciding goal
+  clip?: number;         // Brightcove id of the highlight
+  clipUrl?: string;
+}
+
 export interface TeamSide {
   abbrev: string; name: string; score: number; sog?: number;
 }
@@ -54,6 +65,7 @@ export interface Game {
   otPeriods: number;
   periodsLabel?: string;
   goals: Goal[];
+  shootout?: ShootoutGoal[];
   stars: Star[];
   shotsByPeriod?: { period: number; away: number; home: number }[];
   recapClip?: number;     // ~5 min recap (Brightcove id)

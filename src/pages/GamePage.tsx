@@ -4,7 +4,7 @@ import type { Goal } from "../../shared/types";
 import { useData } from "../lib/data";
 import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus, logo } from "../lib/util";
-import { Chip, ClipPlayer, Face, GoalCard, TeamLogo } from "../components/ui";
+import { Chip, ClipPlayer, Face, Flag, GoalCard, ShootoutCard, TeamLogo } from "../components/ui";
 import { GameShotMap } from "../components/GameShotMap";
 import { InjuryCards, recentNews } from "../components/InjuryNews";
 import { useSpoilers } from "../lib/spoilers";
@@ -15,7 +15,7 @@ export default function GamePage() {
   const { id } = useParams();
   const { gameById, loading, players, news } = useData();
   const [nat, setNat] = useState<string | null>(null);
-  const [tab, setTab] = useState<"goals" | "assists" | "map">("goals");
+  const [tab, setTab] = useState<"goals" | "assists" | "points" | "map">("goals");
   const [text, setText] = useState(false);
   const [vid, setVid] = useState<"short" | "long" | null>(null);
   const sp = useSpoilers();
@@ -40,6 +40,20 @@ export default function GamePage() {
     return [...keys.values()];
   })();
   const shownBlocks = byPeriod({ ...g, goals: shown });
+  const shootout = (g.shootout ?? []).filter((x) => !nat || is(x.scorer.id));
+  // Points in this game: goals + assists (shootout goals don't count), most first.
+  const points = (() => {
+    const m = new Map<number, { id: number; name: string; team: string; g: number; a: number }>();
+    const add = (p: { id: number; name: string }, team: string, k: "g" | "a") => {
+      const e = m.get(p.id) ?? { id: p.id, name: p.name, team, g: 0, a: 0 };
+      e[k]++; m.set(p.id, e);
+    };
+    for (const x of g.goals) {
+      add(x.scorer, x.ownGoal ? x.against : x.team, "g");
+      for (const a of x.assists) add(a, x.team, "a");
+    }
+    return [...m.values()].filter((e) => !nat || is(e.id)).sort((a, b) => b.g + b.a - a.g - a.a || b.g - a.g || a.name.localeCompare(b.name));
+  })();
   return (
     <section>
       <Link to={`/?date=${g.date}`} className="back">‹ {fmtDate(g.date)}</Link>
@@ -103,10 +117,11 @@ export default function GamePage() {
       <div className="tabs-h2" role="tablist">
         <button role="tab" aria-selected={tab === "goals"} className={tab === "goals" ? "on" : ""} onClick={() => setTab("goals")}>Goals ({g.goals.filter((x) => !nat || is(x.scorer.id)).length})</button>
         {g.goals.length > 0 && <button role="tab" aria-selected={tab === "assists"} className={tab === "assists" ? "on" : ""} onClick={() => setTab("assists")}>Assists ({g.goals.reduce((n, x) => n + x.assists.filter((a) => !nat || is(a.id)).length, 0)})</button>}
+        {g.goals.length > 0 && <button role="tab" aria-selected={tab === "points"} className={tab === "points" ? "on" : ""} onClick={() => setTab("points")}>Points</button>}
         <button role="tab" aria-selected={tab === "map"} className={tab === "map" ? "on" : ""} onClick={() => setTab("map")}>Shot map</button>
       </div>
       {tab === "map" && <GameShotMap game={g} />}
-      {(tab === "goals" || tab === "assists") && (
+      {(tab === "goals" || tab === "assists" || tab === "points") && (
         <>
       {g.goals.length > 0 && (
         <div className="row presets">
@@ -116,9 +131,26 @@ export default function GamePage() {
           <Chip active={nat === null} onClick={() => setNat(null)}>All nations</Chip>
         </div>
       )}
-      {g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : shown.length === 0 ? <p className="empty">No {tab === "goals" ? "goals scored" : "assists"} by that nation in this game.</p> : shownBlocks.map((b) => (
+      {tab === "points" ? (points.length === 0 ? <p className="empty">No points by that nation in this game.</p> : (
+        <table className="table">
+          <thead><tr><th>#</th><th>Player</th><th>Team</th><th>P</th><th>G</th><th>A</th></tr></thead>
+          <tbody>
+            {points.map((p, i) => (
+              <tr key={p.id}>
+                <td>{i + 1}</td>
+                <td><Link to={`/player/${p.id}`} className="pl"><Face id={p.id} size={30} /> <Flag code={players[p.id]?.nat} /> {p.name}</Link></td>
+                <td><TeamLogo abbrev={p.team} size={22} /></td>
+                <td><b>{p.g + p.a}</b></td><td>{p.g}</td><td>{p.a}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )) : g.goals.length === 0 ? <p className="empty">No goals{g.finished ? "" : " yet"}.</p> : shown.length === 0 ? <p className="empty">No {tab === "goals" ? "goals scored" : "assists"} by that nation in this game.</p> : shownBlocks.map((b) => (
         <div key={b.label}><h3 className="period">{b.label}</h3>{b.goals.map((x) => <GoalCard key={x.id} goal={x} showGame={false} minimap lead={tab === "goals" ? "scorer" : "assists"} />)}</div>
       ))}
+      {tab === "goals" && shootout.length > 0 && (
+        <div><h3 className="period">Shootout</h3>{shootout.map((x) => <ShootoutCard key={`${x.round}-${x.scorer.id}`} goal={x} />)}</div>
+      )}
         </>
       )}
         </>

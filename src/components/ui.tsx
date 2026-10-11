@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import type { Goal } from "../../shared/types";
+import type { Goal, ShootoutGoal } from "../../shared/types";
+import { shotPhrase } from "../../shared/describe";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useData } from "../lib/data";
@@ -211,6 +212,33 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
         {video && goal.clip && <ClipModal goal={goal} onClose={() => setVideo(false)} />}
       </div>
       {minimap && <MiniRink goal={goal} />}
+    </article>
+  );
+}
+
+/** One shootout goal. Only the deciding goal ever has a clip. Callers keep it behind spoiler mode. */
+export function ShootoutCard({ goal }: { goal: ShootoutGoal }) {
+  const { players } = useData();
+  const [video, setVideo] = useState(false);
+  const text = `${goal.scorer.name} scores ${shotPhrase(goal.shotType)} in round ${goal.round} of the shootout${goal.winner ? " to win it" : ""}.`.replace("  ", " ");
+  return (
+    <article className={`goal${goal.winner ? " hot" : ""}${goal.clip ? " playable" : ""}`} onClick={(e) => { if (goal.clip && !(e.target as HTMLElement).closest("a,button,video,input")) setVideo((v) => !v); }} style={{ "--tc": teamColor(goal.team).vivid } as React.CSSProperties}>
+      <Link to={`/player/${goal.scorer.id}`} className="goal-face"><Face id={goal.scorer.id} size={56} /></Link>
+      <Watermark abbrev={goal.team} />
+      <div className="goal-body">
+        <p className={`goal-text${goal.clip ? " clickable" : ""}`}>{text}</p>
+        <p className="goal-who"><Link to={`/player/${goal.scorer.id}`}><Flag code={players[goal.scorer.id]?.nat} /> {goal.scorer.name}</Link><span> · {goal.team}</span></p>
+        <div className="goal-meta">
+          <span>Round {goal.round}</span>
+          {goal.winner && <span className="tag">Winner</span>}
+          {goal.clip ? (
+            <button className={`tv mini${video ? " on" : ""}`} onClick={() => setVideo((v) => !v)} aria-label={video ? "Hide video" : "Play goal video"} title={video ? "Hide video" : "Watch the goal here"}>
+              <TvIcon />
+            </button>
+          ) : <span>No video from NHL</span>}
+        </div>
+        {video && goal.clip && <VideoModal clip={goal.clip} pageUrl={goal.clipUrl} caption={text} onClose={() => setVideo(false)} />}
+      </div>
     </article>
   );
 }
