@@ -114,7 +114,6 @@ export default function Scores() {
         <h1>{fmtDate(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</h1>
         <div className="row">
           <span className="muted">{day.length} games{anyHidden ? "" : ` · ${goals} goals`}</span>
-          {anyHidden && <Chip onClick={() => spoil.reveal(day.map((g) => g.id))}>Reveal day</Chip>}
           {favs.length > 0 && <Chip active={mine} onClick={() => { const n = new URLSearchParams(sp); mine ? n.delete("mine") : n.set("mine", "1"); setSp(n, { replace: true }); }}>★ My teams</Chip>}
           {date !== anchor && <Chip onClick={() => go(anchor)}>Latest</Chip>}
         </div>

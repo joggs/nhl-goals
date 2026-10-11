@@ -23,6 +23,7 @@ export function useSpoilers() {
       s.on && !!g && (g.finished || g.state === "LIVE" || g.state === "CRIT") && !rev.has(g.id),
     setOn: (on: boolean) => { localStorage.setItem(MODE, on ? "1" : "0"); emit(); },
     reveal: (ids: number[]) => { localStorage.setItem(REV, JSON.stringify([...new Set([...readRev(), ...ids])].slice(-1500))); emit(); },
+    unreveal: (ids: number[]) => { const drop = new Set(ids); localStorage.setItem(REV, JSON.stringify(readRev().filter((id) => !drop.has(id)))); emit(); },
     hideAgain: () => { localStorage.setItem(REV, "[]"); sessionStorage.removeItem(PAGES); emit(); },
     allowPages: () => { sessionStorage.setItem(PAGES, "1"); emit(); },
   };

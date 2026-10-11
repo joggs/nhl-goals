@@ -1,6 +1,6 @@
 import { Component, useEffect, useRef } from "react";
 import type { ErrorInfo, ReactNode } from "react";
-import { HashRouter, NavLink, Route, Routes, Link, useLocation } from "react-router-dom";
+import { HashRouter, NavLink, Route, Routes, Link, useLocation, useSearchParams } from "react-router-dom";
 import { DataProvider, useData } from "./lib/data";
 import { useFavorites, useTheme } from "./lib/favorites";
 import { teamColor } from "./lib/teamColors";
@@ -27,9 +27,14 @@ function Shell() {
     const el = navRef.current, on = el?.querySelector<HTMLElement>("a.on");
     if (el && on) el.scrollTo({ left: on.offsetLeft - el.clientWidth / 2 + on.clientWidth / 2, behavior: "smooth" });
   }, [pathname]);
-  const { manifest, season, setSeason } = useData();
+  const { manifest, season, setSeason, games, anchor } = useData();
   const { teams } = useFavorites();
   const sp = useSpoilers();
+  // Scores page: reveal or hide again the played games of the day on screen (respects the My teams filter).
+  const [params] = useSearchParams();
+  const date = params.get("date") ?? anchor, mine = params.get("mine") === "1" && teams.length > 0;
+  const played = pathname === "/" && sp.on ? games.filter((g) => g.date === date && (g.finished || g.state === "LIVE" || g.state === "CRIT") && (!mine || teams.includes(g.home.abbrev) || teams.includes(g.away.abbrev))) : [];
+  const dayHidden = played.some((g) => sp.hidden(g));
   const theme = useTheme();
   useEffect(() => {
     const r = document.documentElement.style;
@@ -49,6 +54,7 @@ function Shell() {
         <nav ref={navRef}>{nav.map(([to, l]) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "on" : "")}>{l}</NavLink>)}</nav>
         <div className="top-right">
           <button className={`chip spoil${sp.on ? " on" : ""}`} onClick={() => sp.setOn(!sp.on)} title="Hide results until you reveal them">{sp.on ? "🙈 Spoilers hidden" : "👁 Spoilers shown"}</button>
+          {played.length > 0 && <button className="chip spoil" onClick={() => (dayHidden ? sp.reveal : sp.unreveal)(played.map((g) => g.id))}>{dayHidden ? "Reveal day" : "Hide day"}</button>}
           <span className="favs">{teams.slice(0, 4).map((t) => <TeamLogo key={t} abbrev={t} size={20} />)}</span>
           {manifest.seasons.length > 1 && (
             <select value={season} onChange={(e) => setSeason(Number(e.target.value))} aria-label="Season">
