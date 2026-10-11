@@ -138,7 +138,7 @@ export default function GamePage() {
             {points.map((p, i) => (
               <tr key={p.id}>
                 <td>{i + 1}</td>
-                <td><Link to={`/player/${p.id}`} className="pl"><Face id={p.id} size={30} /> <Flag code={players[p.id]?.nat} /> {p.name}</Link></td>
+                <td><Link to={`/player/${p.id}`} className="pl"><Face id={p.id} size={30} /> <Flag code={players[p.id]?.nat} /> {p.name}{(() => { const st = g.stars.find((x) => x.id === p.id); return st && <span className="starno" title={`${["First", "Second", "Third"][st.star - 1]} star`}>{"★".repeat(4 - st.star)}</span>; })()}</Link></td>
                 <td><TeamLogo abbrev={p.team} size={22} /></td>
                 <td><b>{p.g + p.a}</b></td><td>{p.g}</td><td>{p.a}</td>
               </tr>
