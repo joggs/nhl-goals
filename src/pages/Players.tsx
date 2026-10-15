@@ -9,10 +9,10 @@ import { Chip, Face, Flag, GoalCard, PlaylistModal, TeamLogo, Watermark } from "
 import { NewsRow } from "../components/NewsList";
 import { usePlayerNews, useSeasonStats } from "../lib/player";
 import { ShotMap } from "../components/ShotMap";
-import { fmtDate, shortName } from "../lib/util";
+import { fmtDate, shortName, signed } from "../lib/util";
 
-interface Row { id: number; points: number; goals: number; assists: number; ppg: number; shg: number; gwg: number; hat: number; en: number }
-type SortKey = "points" | "goals" | "assists" | "ppg" | "shg" | "gwg" | "hat" | "en";
+interface Row { id: number; points: number; goals: number; assists: number; ppg: number; shg: number; gwg: number; hat: number; en: number; pm: number }
+type SortKey = "points" | "goals" | "assists" | "ppg" | "shg" | "gwg" | "hat" | "en" | "pm";
 
 const COLUMNS: { key: SortKey; label: string; title: string }[] = [
   { key: "points", label: "P", title: "Points (goals + assists)" },
@@ -23,13 +23,16 @@ const COLUMNS: { key: SortKey; label: string; title: string }[] = [
   { key: "gwg", label: "GWG", title: "Game-winning goals" },
   { key: "hat", label: "HAT", title: "Hat tricks" },
   { key: "en", label: "EN", title: "Empty-net goals" },
+  { key: "pm", label: "+/-", title: "Plus/minus over the whole regular season (NHL stats): not affected by the date filters" },
 ];
+
+const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
 
 export function tally(goals: ReturnType<typeof useFilteredGoals>): Row[] {
   const m = new Map<number, Row>();
   const row = (id: number) => {
     let r = m.get(id);
-    if (!r) { r = { id, points: 0, goals: 0, assists: 0, ppg: 0, shg: 0, gwg: 0, hat: 0, en: 0 }; m.set(id, r); }
+    if (!r) { r = { id, points: 0, goals: 0, assists: 0, ppg: 0, shg: 0, gwg: 0, hat: 0, en: 0, pm: 0 }; m.set(id, r); }
     return r;
   };
   for (const g of goals) {
@@ -73,17 +76,21 @@ export function Players() {
     if (pos.codes.length ? !pos.codes.includes(p?.pos ?? "") : p?.pos === "G") return false;
     return !rookie || rookies.has(Number(id));
   }, [players, f.nat, f.q, pos, rookie, rookies]);
-  const rows = useMemo(() => tally(goals).filter((r) => picks(r.id)), [goals, picks]);
+  const rows = useMemo(() => tally(goals).filter((r) => picks(r.id)).map((r) => ({ ...r, pm: st?.rs?.skaters[r.id]?.pm ?? 0 })), [goals, picks, st]);
   const table = useMemo(() => {
     const { key, dir } = sort;
     return [...rows].sort((a, b) => dir * (a[key] - b[key]) || b.points - a.points || b.goals - a.goals || (players[a.id]?.n ?? "").localeCompare(players[b.id]?.n ?? ""));
   }, [rows, sort, players]);
   const leaders = (key: SortKey) => [...rows].sort((a, b) => b[key] - a[key] || b.points - a.points || b.goals - a.goals).filter((r) => r[key] > 0).slice(0, 5);
-  // Ice time is the NHL's own season average, so it ignores the date filters; the player filters still apply.
-  const iceTime = useMemo(() => {
+  // Ice time and plus/minus are the NHL's own season numbers, so they ignore the date filters; the player filters still apply.
+  const seasonTop = useMemo(() => {
     const sk = Object.entries(st?.rs?.skaters ?? {});
     const minGp = Math.max(1, Math.round(Math.max(0, ...sk.map(([, s]) => s.gp)) / 2));
-    return sk.filter(([id, s]) => s.gp >= minGp && picks(id)).sort((a, b) => b[1].toi - a[1].toi).slice(0, 5);
+    const eligible = sk.filter(([id, s]) => s.gp >= minGp && picks(id));
+    return {
+      toi: [...eligible].sort((a, b) => b[1].toi - a[1].toi).slice(0, 5).map(([id, s]) => ({ id, v: mmss(s.toi) })),
+      pm: [...eligible].sort((a, b) => b[1].pm - a[1].pm || a[1].gp - b[1].gp).slice(0, 5).map(([id, s]) => ({ id, v: signed(s.pm) })),
+    };
   }, [st, picks]);
   const click = (key: SortKey) => { setSort((s) => (s.key === key ? { key, dir: (-s.dir) as 1 | -1 } : { key, dir: -1 })); setN(50); };
   return (
@@ -113,22 +120,22 @@ export function Players() {
                 })}
               </div>
             ))}
-            {iceTime.length > 0 && (
-              <div>
-                <h3 title="Average time on ice per game, regular season (NHL stats; at least half the games)">Ice time</h3>
-                {iceTime.map(([id, s], i) => {
+            {([["toi", "Ice time", "Average time on ice per game, regular season (NHL stats; at least half the games)"], ["pm", "Plus/minus", "Regular season (NHL stats; at least half the games)"]] as const).map(([key, title, tip]) => seasonTop[key].length > 0 && (
+              <div key={key}>
+                <h3 title={tip}>{title}</h3>
+                {seasonTop[key].map(({ id, v }, i) => {
                   const p = players[id];
                   return (
                     <Link key={id} to={`/player/${id}`} className="leader">
                       <span className="rank">{i + 1}</span><Face id={Number(id)} size={28} />
                       <span className="leader-name" title={p?.n}><Flag code={p?.nat} /> {p?.n ? shortName(p.n) : id}</span>
                       {p?.t && <TeamLogo abbrev={p.t} size={18} />}
-                      <b>{Math.floor(s.toi / 60)}:{String(s.toi % 60).padStart(2, "0")}</b>
+                      <b>{v}</b>
                     </Link>
                   );
                 })}
               </div>
-            )}
+            ))}
           </div>
           <div className="table-scroll"><table className="table sortable">
             <thead>
@@ -151,7 +158,7 @@ export function Players() {
                     <td>{i + 1}</td>
                     <td><Link to={`/player/${r.id}`} className="pl"><Face id={r.id} size={30} /> <Flag code={p?.nat} /> {p?.n ?? r.id}</Link></td>
                     <td>{p?.t && <TeamLogo abbrev={p.t} size={22} />}</td>
-                    {COLUMNS.map((c) => <td key={c.key}>{c.key === sort.key || c.key === "points" ? <b>{r[c.key]}</b> : r[c.key]}</td>)}
+                    {COLUMNS.map((c) => { const v = c.key === "pm" ? (st?.rs?.skaters[r.id] ? signed(r.pm) : "–") : r[c.key]; return <td key={c.key}>{c.key === sort.key || c.key === "points" ? <b>{v}</b> : v}</td>; })}
                   </tr>
                 );
               })}
@@ -167,7 +174,6 @@ export function Players() {
 type Tab = "overview" | "goals" | "assists" | "shots";
 const LATEST = 5;
 
-const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
 const pct = (x: number, digits = 1) => (x * 100).toFixed(digits);
 
 /** Official season totals, regular season and playoffs. Not affected by the filters: it is the NHL's own line. */

@@ -12,7 +12,8 @@ import { teamColor } from "../lib/teamColors";
 import { NewsList } from "../components/NewsList";
 import { TeamLinesView } from "../components/Lines";
 import { InjuryCards, recentNews } from "../components/InjuryNews";
-import { fmtDate, ordinal } from "../lib/util";
+import { fmtDate, ordinal, signed } from "../lib/util";
+import { useSeasonStats } from "../lib/player";
 
 export default function TeamPage() {
   const { abbrev = "" } = useParams();
@@ -29,6 +30,7 @@ export default function TeamPage() {
     return !!g && (g.home.abbrev === abbrev || g.away.abbrev === abbrev);
   }, [abbrev, gameById]);
   const edge = useEdge(season, "regular")?.teams[abbrev];
+  const st = useSeasonStats(season);
   const team = teams.find((t) => t.abbrev === abbrev);
   const r = standings.find((s) => s.abbrev === abbrev);
   const d = useMemo(() => {
@@ -113,7 +115,7 @@ export default function TeamPage() {
       <h2>Scoring leaders</h2>
       {d.players.length === 0 ? <p className="empty">No goals yet.</p> : (
         <table className="table">
-          <thead><tr><th>#</th><th>Player</th><th>P</th><th>G</th><th>A</th><th>PPG</th><th>GWG</th></tr></thead>
+          <thead><tr><th>#</th><th>Player</th><th>P</th><th>G</th><th>A</th><th>PPG</th><th>GWG</th><th title="Plus/minus this regular season (NHL stats)">+/-</th></tr></thead>
           <tbody>
             {d.players.map((p, i) => {
               const info = players[p.id];
@@ -121,7 +123,7 @@ export default function TeamPage() {
                 <tr key={p.id}>
                   <td>{i + 1}</td>
                   <td><Link to={`/player/${p.id}`} className="pl"><Face id={p.id} size={30} /> <Flag code={info?.nat} /> {info?.n ?? p.id}</Link></td>
-                  <td><b>{p.points}</b></td><td>{p.goals}</td><td>{p.assists}</td><td>{p.ppg}</td><td>{p.gwg}</td>
+                  <td><b>{p.points}</b></td><td>{p.goals}</td><td>{p.assists}</td><td>{p.ppg}</td><td>{p.gwg}</td><td>{st?.rs?.skaters[p.id] ? signed(st.rs.skaters[p.id].pm) : "–"}</td>
                 </tr>
               );
             })}

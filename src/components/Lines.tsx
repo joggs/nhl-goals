@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import type { GoalieLine, LineUnit, LineupSlot, SkaterLine, TeamLines } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useLines, useLineups, useSeasonStats } from "../lib/player";
-import { fmtDate, fmtTime, ordinal, shortName, surname } from "../lib/util";
+import { fmtDate, fmtTime, ordinal, shortName, signed, surname } from "../lib/util";
 import { Face, Flag, TeamLogo } from "./ui";
 
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
@@ -43,7 +43,7 @@ function Token({ slot, ctx }: { slot: LineupSlot | { id: number; name?: string; 
       <span className="tk-face">{id ? <Face id={id} size={54} /> : <span className="face ph" style={{ width: 54, height: 54 }} />}{f.heat && <i className={`tk-heat ${f.heat}`} title={HEAT_LABEL[f.heat]}>{HEAT_ICON[f.heat]}</i>}</span>
       <b className="tk-name"><Flag code={p?.nat} /> {surname(name)}</b>
       {s ? <small className="tk-pts"><b>{s.p}</b> P · {s.g}G {s.a}A</small> : <small className="tk-pts muted">–</small>}
-      {s && <small className="muted">{mmss(s.toi)} TOI</small>}
+      {s && <small className="muted">{mmss(s.toi)} TOI · <span className={s.pm > 0 ? "pm-up" : s.pm < 0 ? "pm-down" : ""} title="Plus/minus this season">{signed(s.pm)}</span></small>}
       <span className="pips" title={`Last ${f.last.length} games: ${f.pts} points${f.streak >= 2 ? ` · ${f.streak}-game point streak` : ""}`}>
         {f.last.map(([g, a], i) => <i key={i} className={`pip p${Math.min(3, g + a)}${g ? " g" : ""}`} />)}
       </span>
@@ -61,7 +61,7 @@ function UnitStats({ unit, label }: { unit?: LineUnit; label: string }) {
   const share = unit.gf + unit.ga ? unit.gf / (unit.gf + unit.ga) : 0.5;
   return (
     <small className="unit-stats" title={`${label}: ${mmss(unit.toi)} together at 5-on-5 in ${unit.gp} games`}>
-      {label}: <b>{mmss(unit.toi)}</b> together · {unit.gp} GP · GF <b>{unit.gf}</b>–<b>{unit.ga}</b> GA
+      {label}: <b>{mmss(unit.toi)}</b> together · {unit.gp} GP · GF <b>{unit.gf}</b>–<b>{unit.ga}</b> GA <b className={unit.gf > unit.ga ? "pm-up" : unit.gf < unit.ga ? "pm-down" : ""}>{signed(unit.gf - unit.ga)}</b>
       <span className="gf-bar"><i style={{ width: `${share * 100}%` }} /></span>
     </small>
   );

@@ -23,5 +23,6 @@ export function gameStatus(g: Game): string {
 
 /** "Alexis Lafrenière" -> "A. Lafrenière", for narrow lists (show the full name as a tooltip). */
 export const shortName = (full: string) => { const [first, ...rest] = full.split(" "); return rest.length ? `${first[0]}. ${rest.join(" ")}` : full; };
+export const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 export const surname = (full: string) => full.split(" ").slice(1).join(" ") || full;
 export const winner = (g: Game) => (!g.finished ? undefined : g.home.score > g.away.score ? g.home : g.away);

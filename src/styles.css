@@ -372,3 +372,4 @@ a.tk:hover { text-decoration: none; border-color: var(--accent); background: col
 .ice.solo { --blue-line: transparent; }
 .used-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid var(--line); } .used-row:last-child { border-bottom: 0; }
 .used-names { font-size: .8rem; line-height: 1.25; min-width: 0; } .used-names a { color: var(--text); } .used-names a:hover { color: var(--accent); } .used-row small { white-space: nowrap; }
+.pm-up { color: var(--good); } .pm-down { color: var(--goal); }
