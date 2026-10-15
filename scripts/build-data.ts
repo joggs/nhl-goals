@@ -11,7 +11,7 @@
  *   dailyfaceoff.com  projected line-ups (team pages, at most every two hours)
  * Finished games are cached in .cache/ and never re-fetched.
  */
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
 import type { Lineup, NewsItem, PlayerStats, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, ShootoutGoal, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
 import { cached, getJson, pool, stats, web } from "./lib-nhl.js";
@@ -370,6 +370,22 @@ async function loadStats(season: number, gt: 2 | 3): Promise<PlayerStats> {
   return out;
 }
 
+/**
+ * CI builds the current and the previous season, so cached responses from seasons before that are never read again.
+ * Deletes them (games, play-by-play, shifts, playoff series, end-of-season standings) to keep the Actions cache small.
+ */
+async function pruneCache(cur: number) {
+  const oldest = Math.floor(cur / 10000) - 1; // start year of the previous season
+  let n = 0;
+  for (const f of await readdir(".cache").catch(() => [] as string[])) {
+    const game = /^(?:landing|pbp|rr|shifts|scratches)-(\d{4})\d{6}\.json$/.exec(f) ?? /^series-(\d{4})\d{4}-/.exec(f);
+    const day = /^standings-(\d{4})-(\d{2})-\d{2}\.json$/.exec(f);
+    const start = game ? Number(game[1]) : day ? Number(day[1]) - (Number(day[2]) < 7 ? 1 : 0) : undefined;
+    if (start !== undefined && start < oldest) { await unlink(`.cache/${f}`); n++; }
+  }
+  if (n) console.log(`Pruned ${n} cached files from seasons before ${oldest}–${String(oldest + 1).slice(2)}`);
+}
+
 async function main() {
   await mkdir(OUT, { recursive: true });
   const cur = await currentSeasonId();
@@ -470,6 +486,7 @@ async function main() {
   }
   await writeFile(`${OUT}/players.json`, JSON.stringify(Object.fromEntries(players)));
   await writeFile(`${OUT}/manifest.json`, JSON.stringify(manifest));
+  await pruneCache(cur);
   console.log("Done.");
 }
 
