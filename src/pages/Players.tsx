@@ -46,7 +46,7 @@ export function tally(goals: ReturnType<typeof useFilteredGoals>): Row[] {
 }
 
 export function Players() {
-  const { players, loading } = useData();
+  const { players, loading, season } = useData();
   const [f, set] = useGoalFilter({ range: "season" });
   // Nationality and name search select players, not goals: filtering goals by scorer would cut assists off.
   const goals = useFilteredGoals({ ...f, nat: [], q: "" });
@@ -65,6 +65,15 @@ export function Players() {
     return [...rows].sort((a, b) => dir * (a[key] - b[key]) || b.points - a.points || b.goals - a.goals || (players[a.id]?.n ?? "").localeCompare(players[b.id]?.n ?? ""));
   }, [rows, sort, players]);
   const leaders = (key: SortKey) => [...rows].sort((a, b) => b[key] - a[key] || b.points - a.points || b.goals - a.goals).filter((r) => r[key] > 0).slice(0, 5);
+  const st = useSeasonStats(season);
+  // Ice time is the NHL's own season average, so it ignores the date filters; nationality and name still apply.
+  const iceTime = useMemo(() => {
+    const sk = Object.entries(st?.rs?.skaters ?? {});
+    const minGp = Math.max(1, Math.round(Math.max(0, ...sk.map(([, s]) => s.gp)) / 2));
+    const q = f.q.trim().toLowerCase();
+    return sk.filter(([id, s]) => s.gp >= minGp && (!f.nat.length || f.nat.includes(players[id]?.nat ?? "?")) && (!q || (players[id]?.n ?? "").toLowerCase().includes(q)))
+      .sort((a, b) => b[1].toi - a[1].toi).slice(0, 5);
+  }, [st, players, f.nat, f.q]);
   const click = (key: SortKey) => { setSort((s) => (s.key === key ? { key, dir: (-s.dir) as 1 | -1 } : { key, dir: -1 })); setN(50); };
   return (
     <section>
@@ -89,6 +98,22 @@ export function Players() {
                 })}
               </div>
             ))}
+            {iceTime.length > 0 && (
+              <div>
+                <h3 title="Average time on ice per game, regular season (NHL stats; at least half the games)">Ice time</h3>
+                {iceTime.map(([id, s], i) => {
+                  const p = players[id];
+                  return (
+                    <Link key={id} to={`/player/${id}`} className="leader">
+                      <span className="rank">{i + 1}</span><Face id={Number(id)} size={28} />
+                      <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? id}</span>
+                      {p?.t && <TeamLogo abbrev={p.t} size={18} />}
+                      <b>{Math.floor(s.toi / 60)}:{String(s.toi % 60).padStart(2, "0")}</b>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <div className="table-scroll"><table className="table sortable">
             <thead>

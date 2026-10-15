@@ -10,12 +10,13 @@ import { useEdge } from "../lib/edge";
 import { TEAM_METRICS } from "./Edge";
 import { teamColor } from "../lib/teamColors";
 import { NewsList } from "../components/NewsList";
+import { TeamLinesView } from "../components/Lines";
 import { InjuryCards, recentNews } from "../components/InjuryNews";
 import { fmtDate, ordinal } from "../lib/util";
 
 export default function TeamPage() {
   const { abbrev = "" } = useParams();
-  const [tab, setTab] = useState<"overview" | "players" | "results" | "news">("overview");
+  const [tab, setTab] = useState<"overview" | "lines" | "players" | "results" | "news">("overview");
   const [ncat, setNcat] = useState<NewsCat | "">("");
   const { teams, standings, goals, games, players, season, news } = useData();
   const { teams: favs } = useFavorites();
@@ -69,7 +70,7 @@ export default function TeamPage() {
         <Link className="chip" to={`/goals?against=${abbrev}&range=season`}>Goals against {abbrev}</Link>
       </p>
       <div className="tabs-h2" role="tablist">
-        {([["overview", "Overview"], ["players", "Players"], ["results", "Results"], ["news", "News"]] as const).map(([k, l]) => (
+        {([["overview", "Overview"], ["lines", "Lines"], ["players", "Players"], ["results", "Results"], ["news", "News"]] as const).map(([k, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>
         ))}
       </div>
@@ -129,6 +130,7 @@ export default function TeamPage() {
       )}
         </>
       )}
+      {tab === "lines" && <TeamLinesView abbrev={abbrev} />}
       {tab === "news" && <NewsList items={news.filter((n) => n.teams.includes(abbrev))} cat={ncat} onCat={setNcat} />}
       {tab === "results" && (
         <>

@@ -86,6 +86,31 @@ export interface GoalieLine { gp: number; w: number; l: number; otl: number; gaa
 /** stats-{season}.json (regular season) and stats-{season}-po.json (playoffs), keyed by player id. */
 export interface PlayerStats { season: number; type: 2 | 3; skaters: Record<string, SkaterLine>; goalies: Record<string, GoalieLine> }
 
+/** Players on the ice together. Season totals at 5-on-5 (power-play units: on the power play). */
+export interface LineUnit {
+  ids: number[];    // forwards left wing, centre, right wing; defence pairs as they come
+  toi: number;      // seconds together this season
+  gf: number; ga: number; // goals for and against while together
+  gp: number;       // games with at least a minute together (power play: 20 s)
+  recent: number;   // seconds together in the latest game (power play: the last five games)
+}
+/** How a team lined up in its latest game, from the NHL shift charts. */
+export interface TeamLines {
+  game: number; date: string; opp: string; home: boolean;
+  goalie?: number;              // the goalie who played the most in that game
+  scratches: number[];          // healthy and injured scratches in that game
+  fwd: LineUnit[]; def: LineUnit[]; pp: LineUnit[];
+  topFwd: LineUnit[]; topDef: LineUnit[]; // most used this season
+  combos: LineUnit[];           // season numbers for the units of the projected line-up (only those that have played together)
+  form: Record<string, [number, number][]>; // skater -> goals, assists in each of his last ten games, oldest first
+}
+/** One player in a projected line-up. `id` is missing when the name could not be matched to an NHL player. */
+export interface LineupSlot { id?: number; name: string; pos: string; gtd?: boolean; injury?: string }
+/** Projected line-up for a team's next game, from DailyFaceoff. Groups: f1-f4, d1-d3, pp1-pp2, pk1-pk2, g (starter first), ir. */
+export interface Lineup { url: string; updated: string; reporter?: string; sourceUrl?: string; groups: Record<string, LineupSlot[]> }
+
+export interface LinesFile { season: number; teams: Record<string, TeamLines> }
+
 export interface TeamInfo { abbrev: string; name: string; division?: string; conference?: string }
 
 export interface Manifest {

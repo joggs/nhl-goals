@@ -7,14 +7,17 @@
  *
  * Sources (all unauthenticated, no CORS => that's why this runs server-side):
  *   api-web.nhle.com/v1  schedule, gamecenter play-by-play + landing, standings
- *   api.nhle.com/stats/rest/en  skater/goalie bios (nationality), season totals, country names
+ *   api.nhle.com/stats/rest/en  skater/goalie bios (nationality), season totals, shift charts (lines), country names
+ *   dailyfaceoff.com  projected line-ups (team pages, at most every two hours)
  * Finished games are cached in .cache/ and never re-fetched.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import type { NewsItem, PlayerStats, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, ShootoutGoal, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
+import type { Lineup, NewsItem, PlayerStats, EdgeBoardId, EdgeData, EdgeEntry, EdgePos, EdgeStat, EdgeTeam, ShotFile, Game, Goal, Manifest, ShootoutGoal, PlayerInfo, PlayoffBracket, PlayoffGame, PlayoffSeries, StandingRow, Star, TeamInfo } from "../shared/types.js";
 import { describeGoal, describeLocation, distanceToNet, normalise, parseSituation } from "../shared/describe.js";
 import { cached, getJson, pool, stats, web } from "./lib-nhl.js";
 import { FORGE, toNewsItems } from "../shared/news.js";
+import { loadLines } from "./lines.js";
+import { loadLineups } from "./dailyfaceoff.js";
 
 const OUT = "public/data";
 const args = process.argv.slice(2);
@@ -372,6 +375,7 @@ async function main() {
   const cur = await currentSeasonId();
   const seasons = seasonArg ? seasonArg.split(",").map(Number) : args.includes("--with-previous") ? [cur - 10001, cur] : [cur];
   const players = new Map<number, PlayerInfo>();
+  const gamesBySeason = new Map<number, Game[]>();
   const manifest: Manifest = { updated: new Date().toISOString(), seasons: [], currentSeason: cur, countries: {} };
 
   for (const season of seasons) {
@@ -391,6 +395,7 @@ async function main() {
     await writeFile(`${OUT}/shots-${season}.json`, JSON.stringify(shots));
     regularSeasonEnd.set(season, games.filter((g) => g.type === 2 && g.finished).map((g) => g.date).sort().at(-1) ?? "");
     await writeFile(`${OUT}/season-${season}.json`, JSON.stringify(games));
+    gamesBySeason.set(season, games);
     const label = `${String(season).slice(0, 4)}–${String(season).slice(6)}`;
     manifest.seasons.push({ id: season, label, games: games.length, goals: games.reduce((a, g) => a + g.goals.length, 0) });
     console.log(`  wrote ${games.length} games, ${manifest.seasons.at(-1)!.goals} goals`);
@@ -447,6 +452,22 @@ async function main() {
   const teams: TeamInfo[] = rows.map((r) => ({ abbrev: r.abbrev, name: r.name, division: r.division, conference: r.conference }));
   await writeFile(`${OUT}/standings.json`, JSON.stringify(rows));
   await writeFile(`${OUT}/teams.json`, JSON.stringify(teams));
+  let lineups: Record<string, Lineup> = {};
+  try {
+    lineups = await loadLineups(teams, players);
+    await writeFile(`${OUT}/lineups.json`, JSON.stringify(lineups));
+    console.log(`  wrote projected line-ups for ${Object.keys(lineups).length} teams`);
+  } catch (e) { console.warn("line-ups failed", (e as Error).message); }
+  console.log("Line combinations…");
+  const wanted = Object.fromEntries(Object.entries(lineups).map(([abbrev, l]) => [abbrev,
+    ["f1", "f2", "f3", "f4", "d1", "d2", "d3", "pp1", "pp2"].map((g) => (l.groups[g] ?? []).map((s) => s.id)).filter((ids): ids is number[] => ids.length > 0 && ids.every(Boolean))]));
+  for (const [season, games] of gamesBySeason) {
+    try {
+      const lines = await loadLines(season, games, players, season === cur ? wanted : {});
+      await writeFile(`${OUT}/lines-${season}.json`, JSON.stringify(lines));
+      console.log(`  ${season}: line combinations for ${Object.keys(lines.teams).length} teams`);
+    } catch (e) { console.warn(`  lines ${season} failed:`, (e as Error).message); }
+  }
   await writeFile(`${OUT}/players.json`, JSON.stringify(Object.fromEntries(players)));
   await writeFile(`${OUT}/manifest.json`, JSON.stringify(manifest));
   console.log("Done.");

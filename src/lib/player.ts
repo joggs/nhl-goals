@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { NewsItem, PlayerStats } from "../../shared/types";
+import type { Lineup, LinesFile, NewsItem, PlayerStats } from "../../shared/types";
 import { FORGE, toNewsItems } from "../../shared/news";
 
 const base = import.meta.env.BASE_URL;
@@ -43,5 +43,38 @@ export function usePlayerNews(pid: number) {
     p.then((items) => { if (live) setV(items); });
     return () => { live = false; };
   }, [pid]);
+  return v;
+}
+
+const linesCache = new Map<number, Promise<LinesFile | null>>();
+
+/** Line combinations of every team for a season. undefined while loading, null if the season has none. */
+export function useLines(season: number) {
+  const [v, setV] = useState<LinesFile | null>();
+  useEffect(() => {
+    let live = true;
+    setV(undefined);
+    let p = linesCache.get(season);
+    if (!p) {
+      p = fetch(`${base}data/lines-${season}.json`, { cache: "no-cache" }).then((r) => (r.ok ? (r.json() as Promise<LinesFile>) : null)).catch(() => null);
+      linesCache.set(season, p);
+    }
+    p.then((f) => { if (live) setV(f); });
+    return () => { live = false; };
+  }, [season]);
+  return v;
+}
+
+let lineupsP: Promise<Record<string, Lineup>> | undefined;
+
+/** Projected line-ups for every team's next game (DailyFaceoff). undefined while loading. */
+export function useLineups() {
+  const [v, setV] = useState<Record<string, Lineup>>();
+  useEffect(() => {
+    let live = true;
+    lineupsP ??= fetch(`${base}data/lineups.json`, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+    lineupsP.then((x) => { if (live) setV(x); });
+    return () => { live = false; };
+  }, []);
   return v;
 }
