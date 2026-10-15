@@ -80,7 +80,7 @@ function Unit({ title, fwd, def, ctx, find, foot }: { title: string; fwd: (Lineu
           <span className="heat-bar"><i style={{ width: `${Math.max(4, h.pct)}%` }} /></span> {h.label} · {pts} pts last 5
         </span>
       </header>
-      <div className="ice">
+      <div className={`ice${def.length ? "" : " solo"}`}>
         <div className="ice-row f">{fwd.map((s, i) => <Token key={s.id ?? i} slot={s} ctx={ctx} />)}</div>
         {def.length > 0 && <div className="ice-row d">{def.map((s, i) => <Token key={s.id ?? i} slot={s} ctx={ctx} />)}</div>}
       </div>
@@ -186,9 +186,16 @@ export function TeamLinesView({ abbrev }: { abbrev: string }) {
           {lines && lines.topFwd.length > 0 && (
             <div>
               <h3>Most used this season</h3>
-              {[...lines.topFwd.slice(0, 4), ...lines.topDef.slice(0, 3)].map((u) => (
-                <div key={keyOf(u.ids)} className="pp-row" title={u.ids.map((id) => players[id]?.n).join(" – ")}>
-                  <Faces ids={u.ids} /><small className="muted">{mmss(u.toi)} · {u.gf}–{u.ga}</small>
+              {([["Lines", lines.topFwd.slice(0, 4)], ["Pairs", lines.topDef.slice(0, 3)]] as const).map(([label, list]) => list.length > 0 && (
+                <div key={label}>
+                  <h4 className="infolabel">{label}</h4>
+                  {list.map((u) => (
+                    <div key={keyOf(u.ids)} className="used-row">
+                      <Faces ids={u.ids} />
+                      <span className="used-names">{u.ids.map((id, i) => <span key={id}>{i > 0 && " – "}<Link to={`/player/${id}`}>{surname(players[id]?.n ?? String(id))}</Link></span>)}</span>
+                      <small className="muted">{mmss(u.toi)} · {u.gf}–{u.ga}</small>
+                    </div>
+                  ))}
                 </div>
               ))}
               <p className="muted small-note">5-on-5 time together, goals for–against.</p>
