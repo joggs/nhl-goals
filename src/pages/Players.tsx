@@ -213,7 +213,7 @@ export function PlayerPage() {
   const mine = useFilteredGoals({ ...f, player: undefined });
   const scored = mine.filter((g) => g.scorer.id === pid);
   const assisted = mine.filter((g) => g.assists.some((a) => a.id === pid));
-  const [playAll, setPlayAll] = useState(false);
+  const [playAll, setPlayAll] = useState<typeof scored>();
   const stats = useMemo(() => {
     const count = (fn: (g: (typeof scored)[number]) => string | undefined) => {
       const m = new Map<string, number>();
@@ -236,7 +236,10 @@ export function PlayerPage() {
     <div key={k} className="bar"><span>{k}</span><i style={{ width: `${(v / rows[0][1]) * 100}%` }} /><b>{v}</b></div>
   ));
   const goalList = (goals: typeof scored) => goals.map((g) => <div key={g.id}><small className="muted">{fmtDate(g.date)}</small><GoalCard goal={g} minimap /></div>);
-  const withClip = scored.filter((g) => g.clip).length;
+  const playButton = (goals: typeof scored, what: string) => {
+    const n = goals.filter((g) => g.clip).length;
+    return n > 1 && <button className="chip" onClick={() => setPlayAll(goals)} title={`Play every ${what} in range, newest first`}>▶ Play all {n}</button>;
+  };
   return (
     <section>
       <div className="profile">
@@ -262,7 +265,7 @@ export function PlayerPage() {
           {(!goalie || scored.length > 0) && <div>
             <div className="row between">
               <h3>Latest goals</h3>
-              {withClip > 1 && <button className="chip" onClick={() => setPlayAll(true)} title="Play every goal in range, newest first">▶ Play all {withClip}</button>}
+              {playButton(scored, "goal")}
             </div>
             {scored.length === 0 && <p className="muted">No goals in this range.</p>}
             {goalList(scored.slice(0, LATEST))}
@@ -284,11 +287,12 @@ export function PlayerPage() {
       )}
       {(tab === "goals" || tab === "assists") && (
         <>
+          {list.length > 0 && <div className="row between"><h3>{tab === "goals" ? "Goals" : "Assists"}</h3>{playButton(list, tab === "goals" ? "goal" : "assisted goal")}</div>}
           {list.length === 0 && <p className="empty">Nothing in this range.</p>}
           {goalList(list.slice(0, 60))}
         </>
       )}
-      {playAll && <PlaylistModal goals={scored} onClose={() => setPlayAll(false)} />}
+      {playAll && <PlaylistModal goals={playAll} onClose={() => setPlayAll(undefined)} />}
     </section>
   );
 }
