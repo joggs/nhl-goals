@@ -9,7 +9,7 @@ import { Chip, Face, Flag, GoalCard, PlaylistModal, TeamLogo, Watermark } from "
 import { NewsRow } from "../components/NewsList";
 import { usePlayerNews, useSeasonStats } from "../lib/player";
 import { ShotMap } from "../components/ShotMap";
-import { fmtDate } from "../lib/util";
+import { fmtDate, shortName } from "../lib/util";
 
 interface Row { id: number; points: number; goals: number; assists: number; ppg: number; shg: number; gwg: number; hat: number; en: number }
 type SortKey = "points" | "goals" | "assists" | "ppg" | "shg" | "gwg" | "hat" | "en";
@@ -45,39 +45,54 @@ export function tally(goals: ReturnType<typeof useFilteredGoals>): Row[] {
   return [...m.values()];
 }
 
+const POS_GROUPS: { id: string; label: string; codes: string[] }[] = [
+  { id: "", label: "All skaters", codes: [] }, { id: "F", label: "Forwards", codes: ["C", "L", "R"] },
+  { id: "C", label: "Centres", codes: ["C"] }, { id: "W", label: "Wingers", codes: ["L", "R"] }, { id: "D", label: "Defencemen", codes: ["D"] },
+];
+
 export function Players() {
   const { players, loading, season } = useData();
   const [f, set] = useGoalFilter({ range: "season" });
+  // Position and rookie filters live in the URL next to the goal filters.
+  const [sp, setSp] = useSearchParams();
+  const pos = POS_GROUPS.find((g) => g.id === sp.get("pos")) ?? POS_GROUPS[0];
+  const rookie = sp.get("rookie") === "1";
+  const setParam = (k: string, v?: string) => { const q = new URLSearchParams(sp); if (v) q.set(k, v); else q.delete(k); setSp(q, { replace: true }); };
+  const st = useSeasonStats(season);
+  const rookies = useMemo(() => new Set(st?.rs?.rookies ?? []), [st]);
   // Nationality and name search select players, not goals: filtering goals by scorer would cut assists off.
   const goals = useFilteredGoals({ ...f, nat: [], q: "" });
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "points", dir: -1 });
   const [n, setN] = useState(50);
-  const rows = useMemo(() => {
+  /** Nationality, name, position and rookie filters: they pick players, never goals. */
+  const picks = useCallback((id: number | string) => {
+    const p = players[id];
     const q = f.q.trim().toLowerCase();
-    return tally(goals).filter((r) => {
-      const p = players[r.id];
-      if (f.nat.length && !f.nat.includes(p?.nat ?? "?")) return false;
-      return !q || (p?.n ?? "").toLowerCase().includes(q);
-    });
-  }, [goals, players, f.nat, f.q]);
+    if (f.nat.length && !f.nat.includes(p?.nat ?? "?")) return false;
+    if (q && !(p?.n ?? "").toLowerCase().includes(q)) return false;
+    if (pos.codes.length ? !pos.codes.includes(p?.pos ?? "") : p?.pos === "G") return false;
+    return !rookie || rookies.has(Number(id));
+  }, [players, f.nat, f.q, pos, rookie, rookies]);
+  const rows = useMemo(() => tally(goals).filter((r) => picks(r.id)), [goals, picks]);
   const table = useMemo(() => {
     const { key, dir } = sort;
     return [...rows].sort((a, b) => dir * (a[key] - b[key]) || b.points - a.points || b.goals - a.goals || (players[a.id]?.n ?? "").localeCompare(players[b.id]?.n ?? ""));
   }, [rows, sort, players]);
   const leaders = (key: SortKey) => [...rows].sort((a, b) => b[key] - a[key] || b.points - a.points || b.goals - a.goals).filter((r) => r[key] > 0).slice(0, 5);
-  const st = useSeasonStats(season);
-  // Ice time is the NHL's own season average, so it ignores the date filters; nationality and name still apply.
+  // Ice time is the NHL's own season average, so it ignores the date filters; the player filters still apply.
   const iceTime = useMemo(() => {
     const sk = Object.entries(st?.rs?.skaters ?? {});
     const minGp = Math.max(1, Math.round(Math.max(0, ...sk.map(([, s]) => s.gp)) / 2));
-    const q = f.q.trim().toLowerCase();
-    return sk.filter(([id, s]) => s.gp >= minGp && (!f.nat.length || f.nat.includes(players[id]?.nat ?? "?")) && (!q || (players[id]?.n ?? "").toLowerCase().includes(q)))
-      .sort((a, b) => b[1].toi - a[1].toi).slice(0, 5);
-  }, [st, players, f.nat, f.q]);
+    return sk.filter(([id, s]) => s.gp >= minGp && picks(id)).sort((a, b) => b[1].toi - a[1].toi).slice(0, 5);
+  }, [st, picks]);
   const click = (key: SortKey) => { setSort((s) => (s.key === key ? { key, dir: (-s.dir) as 1 | -1 } : { key, dir: -1 })); setN(50); };
   return (
     <section>
-      <div className="row between"><h1>Scoring leaders</h1><span className="muted">{rows.length} players · {goals.length} goals</span></div>
+      <div className="row between"><h1>Scoring leaders{pos.id || rookie ? <small className="muted"> · {rookie ? "Rookie " : ""}{pos.id ? pos.label.toLowerCase() : rookie ? "skaters" : ""}</small> : null}</h1><span className="muted">{rows.length} players · {goals.length} goals</span></div>
+      <div className="row">
+        {POS_GROUPS.map((g) => <Chip key={g.id} active={pos.id === g.id} onClick={() => setParam("pos", g.id)}>{g.label}</Chip>)}
+        <Chip active={rookie} onClick={() => setParam("rookie", rookie ? undefined : "1")} title="Players in their rookie season (NHL definition)">Rookies</Chip>
+      </div>
       <FilterBar f={f} set={set} hide={["natrole"]} />
       {loading ? <div className="spinner" /> : (
         <>
@@ -90,7 +105,7 @@ export function Players() {
                   return (
                     <Link key={r.id} to={`/player/${r.id}`} className="leader">
                       <span className="rank">{i + 1}</span><Face id={r.id} size={28} />
-                      <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? r.id}</span>
+                      <span className="leader-name" title={p?.n}><Flag code={p?.nat} /> {p?.n ? shortName(p.n) : r.id}</span>
                       {p?.t && <TeamLogo abbrev={p.t} size={18} />}
                       <b>{r[key]}</b>
                     </Link>
@@ -106,7 +121,7 @@ export function Players() {
                   return (
                     <Link key={id} to={`/player/${id}`} className="leader">
                       <span className="rank">{i + 1}</span><Face id={Number(id)} size={28} />
-                      <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? id}</span>
+                      <span className="leader-name" title={p?.n}><Flag code={p?.nat} /> {p?.n ? shortName(p.n) : id}</span>
                       {p?.t && <TeamLogo abbrev={p.t} size={18} />}
                       <b>{Math.floor(s.toi / 60)}:{String(s.toi % 60).padStart(2, "0")}</b>
                     </Link>
@@ -195,7 +210,7 @@ function PointsRace({ pid, goals, query }: { pid: number; goals: ReturnType<type
     return (
       <Link key={r.id} to={`/player/${r.id}`} className={`leader${r.id === pid ? " me" : ""}`}>
         <span className="rank">{rank}</span><Face id={r.id} size={26} />
-        <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? r.id}</span>
+        <span className="leader-name" title={p?.n}><Flag code={p?.nat} /> {p?.n ? shortName(p.n) : r.id}</span>
         {p?.t && <TeamLogo abbrev={p.t} size={18} />}
         <small className="muted race-ga">{r.goals}+{r.assists}</small><b>{r.points}</b>
       </Link>

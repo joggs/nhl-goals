@@ -5,7 +5,7 @@ import { useData } from "../lib/data";
 import { Chip, Face, Flag, GoalCard, TeamLogo, Watermark } from "../components/ui";
 import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
-import { headshot } from "../lib/util";
+import { headshot, shortName } from "../lib/util";
 import { kmh } from "../lib/units";
 
 const base = import.meta.env.BASE_URL;
@@ -82,7 +82,7 @@ function PlayoffLeaders({ season }: { season: number }) {
               return (
                 <Link key={r.id} to={`/player/${r.id}`} className="leader">
                   <span className="rank">{i + 1}</span><Face id={r.id} size={28} />
-                  <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? r.id}</span>
+                  <span className="leader-name" title={p?.n}><Flag code={p?.nat} /> {p?.n ? shortName(p.n) : r.id}</span>
                   {p?.t && <TeamLogo abbrev={p.t} size={18} />}
                   <b>{r[key]}</b>
                 </Link>
@@ -97,7 +97,7 @@ function PlayoffLeaders({ season }: { season: number }) {
               <Link key={e.id} to={`/player/${e.id}`} className="leader">
                 <span className="rank">{i + 1}</span>
                 {e.h ? <img className="face" src={headshot(e.h)} width={28} height={28} alt="" loading="lazy" /> : <span className="face ph" style={{ width: 28, height: 28 }} />}
-                <span className="leader-name">{e.name}</span><TeamLogo abbrev={e.team} size={18} /><b>{c.fmt(e.value)}</b>
+                <span className="leader-name" title={e.name}>{shortName(e.name)}</span><TeamLogo abbrev={e.team} size={18} /><b>{c.fmt(e.value)}</b>
               </Link>
             ))}
           </div>

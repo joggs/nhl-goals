@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import type { GoalieLine, LineUnit, LineupSlot, SkaterLine, TeamLines } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useLines, useLineups, useSeasonStats } from "../lib/player";
-import { fmtDate, fmtTime, ordinal, surname } from "../lib/util";
+import { fmtDate, fmtTime, ordinal, shortName, surname } from "../lib/util";
 import { Face, Flag, TeamLogo } from "./ui";
 
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
@@ -156,7 +156,7 @@ export function TeamLinesView({ abbrev }: { abbrev: string }) {
               const s = ctx.goalies[id];
               return (
                 <Link key={id} to={`/player/${id}`} className="leader">
-                  <Face id={id} size={34} /><span className="leader-name">{players[id]?.n ?? id}{i === 0 && goalies.length > 1 && <small className="muted"> · projected starter</small>}</span>
+                  <Face id={id} size={34} /><span className="leader-name" title={players[id]?.n}>{players[id]?.n ? shortName(players[id].n) : id}{i === 0 && goalies.length > 1 && <small className="muted"> · projected starter</small>}</span>
                   {s && <small className="muted">{s.svp.toFixed(3).replace(/^0/, "")} · {s.gaa.toFixed(2)} · {s.w}-{s.l}-{s.otl}</small>}
                 </Link>
               );

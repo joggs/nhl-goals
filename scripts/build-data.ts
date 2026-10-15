@@ -359,8 +359,8 @@ async function loadNews(players: Map<number, PlayerInfo>): Promise<NewsItem[]> {
 /** Official season totals of every skater and goalie for one game type, one request each. */
 async function loadStats(season: number, gt: 2 | 3): Promise<PlayerStats> {
   const q = `limit=-1&cayenneExp=seasonId=${season}%20and%20gameTypeId=${gt}`;
-  const [sk, gk] = await Promise.all([stats(`/skater/summary?${q}`), stats(`/goalie/summary?${q}`)]);
-  const out: PlayerStats = { season, type: gt, skaters: {}, goalies: {} };
+  const [sk, gk, rk] = await Promise.all([stats(`/skater/summary?${q}`), stats(`/goalie/summary?${q}`), stats(`/skater/summary?${q}%20and%20isRookie=%271%27`)]);
+  const out: PlayerStats = { season, type: gt, skaters: {}, goalies: {}, rookies: (rk.data ?? []).map((r: any) => r.playerId as number) };
   for (const r of sk.data ?? []) {
     out.skaters[r.playerId] = { gp: r.gamesPlayed, g: r.goals, a: r.assists, p: r.points, pm: r.plusMinus, ppp: r.ppPoints, s: r.shots, toi: Math.round(r.timeOnIcePerGame ?? 0) };
   }

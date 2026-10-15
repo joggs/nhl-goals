@@ -84,7 +84,7 @@ export interface PlayerInfo {
 export interface SkaterLine { gp: number; g: number; a: number; p: number; pm: number; ppp: number; s: number; toi: number }
 export interface GoalieLine { gp: number; w: number; l: number; otl: number; gaa: number; svp: number; so: number }
 /** stats-{season}.json (regular season) and stats-{season}-po.json (playoffs), keyed by player id. */
-export interface PlayerStats { season: number; type: 2 | 3; skaters: Record<string, SkaterLine>; goalies: Record<string, GoalieLine> }
+export interface PlayerStats { season: number; type: 2 | 3; skaters: Record<string, SkaterLine>; goalies: Record<string, GoalieLine>; rookies?: number[] /* skaters in their rookie season */ }
 
 /** Players on the ice together. Season totals at 5-on-5 (power-play units: on the power play). */
 export interface LineUnit {
