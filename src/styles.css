@@ -353,12 +353,12 @@ video.video { display: block; width: 100%; margin-top: .6rem; border-radius: 10p
   background: radial-gradient(circle at 50% 0, transparent 46px, color-mix(in srgb, var(--goal) 35%, transparent) 47px 48px, transparent 49px),
     linear-gradient(180deg, transparent calc(58% - 2px), var(--blue-line, color-mix(in srgb, #4c7cf0 45%, transparent)) calc(58% - 2px) calc(58% + 2px), transparent calc(58% + 2px)),
     color-mix(in srgb, var(--accent) 6%, var(--card2, #151a24)); }
-.ice-row { display: flex; justify-content: center; gap: clamp(.4rem, 3vw, 2.4rem); } .ice-row.d { gap: clamp(2rem, 10vw, 7rem); }
-.tk { display: grid; justify-items: center; gap: .1rem; width: 112px; padding: .4rem .2rem; border-radius: 12px; color: var(--text); text-align: center; border: 1px solid transparent; }
+.ice-row { display: flex; justify-content: center; gap: clamp(.3rem, 2vw, 1.8rem); } .ice-row.d { gap: clamp(2rem, 10vw, 7rem); }
+.tk { display: grid; justify-items: center; gap: .1rem; width: 134px; padding: .4rem .2rem; border-radius: 12px; color: var(--text); text-align: center; border: 1px solid transparent; }
 a.tk:hover { text-decoration: none; border-color: var(--accent); background: color-mix(in srgb, var(--card) 70%, transparent); }
 .tk.fire .face, .tk.hot .face { box-shadow: 0 0 0 2px var(--goal), 0 0 14px color-mix(in srgb, var(--goal) 70%, transparent); } .tk.cold .face { box-shadow: 0 0 0 2px #7fd3ff; filter: saturate(.6); }
 .tk-face { position: relative; } .tk-heat { position: absolute; right: -6px; bottom: -4px; font-style: normal; font-size: 1rem; } .tk.fire .tk-heat { font-size: 1.25rem; }
-.tk-name { font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; } .tk small { font-size: .7rem; line-height: 1.2; } .tk-pts b { color: var(--accent); }
+.tk-name { font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; } .tk small { font-size: .7rem; line-height: 1.2; } .tk-pts b { color: var(--accent); }
 .tk-flag { color: var(--gold) !important; text-transform: uppercase; font-weight: 700; }
 .pips { display: flex; gap: 3px; margin-top: .15rem; min-height: 8px; } .pip { width: 8px; height: 8px; border-radius: 50%; background: color-mix(in srgb, var(--muted) 30%, transparent); }
 .pip.p1 { background: var(--accent); } .pip.p2 { background: var(--gold); } .pip.p3 { background: var(--goal); } .pip.g { outline: 1px solid #fff; }
@@ -380,3 +380,4 @@ a.tk:hover { text-decoration: none; border-color: var(--accent); background: col
 /* Pages built from tables and grids get more room; reading pages keep the narrow column. */
 main:has(> section.wide) { max-width: 1320px; }
 @media (min-width: 1200px) { .wide .cols.leaders { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .wide .lines-grid { grid-template-columns: minmax(0, 1fr) 320px; } .wide .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

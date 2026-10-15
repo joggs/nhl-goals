@@ -52,7 +52,7 @@ export default function TeamPage() {
   const PERIODS = ["1st", "2nd", "3rd", "OT"];
   const wins = d.played.filter((g) => (g.home.abbrev === abbrev ? g.home.score > g.away.score : g.away.score > g.home.score)).length;
   return (
-    <section style={{ "--tc": tc.vivid, "--tc2": tc.vivid2 } as React.CSSProperties}>
+    <section className="wide" style={{ "--tc": tc.vivid, "--tc2": tc.vivid2 } as React.CSSProperties}>
       <p><Link to="/teams">← All teams</Link></p>
       <div className="team-hero">
         <Watermark abbrev={abbrev} side="left" />
