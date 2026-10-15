@@ -5,7 +5,7 @@ import { useData } from "../lib/data";
 import { rangeBounds, useFilteredGoals, useGoalFilter } from "../lib/filters";
 import { InjuryBadge } from "../components/InjuryNews";
 import { FilterBar } from "../components/FilterBar";
-import { Chip, Face, Flag, GoalCard, PlaylistModal, TeamLogo, Watermark } from "../components/ui";
+import { Chip, Face, Flag, GoalCard, PlaylistModal, TeamLink, TeamLogo, Watermark } from "../components/ui";
 import { NewsRow } from "../components/NewsList";
 import { usePlayerNews, useSeasonStats } from "../lib/player";
 import { ShotMap } from "../components/ShotMap";
@@ -294,7 +294,7 @@ export function PlayerPage() {
         <div>
           <h1>{name}</h1>
           <InjuryBadge player={pid} />
-          <p className="muted"><Flag code={p?.nat} /> {p?.nat ? manifest.countries[p.nat] ?? p.nat : "Unknown"} · {p?.pos} {p?.t && <>· <TeamLogo abbrev={p.t} size={18} /> {p.t}</>}</p>
+          <p className="muted"><Flag code={p?.nat} /> {p?.nat ? manifest.countries[p.nat] ?? p.nat : "Unknown"} · {p?.pos} {p?.t && <>· <TeamLogo abbrev={p.t} size={18} /> <TeamLink abbrev={p.t} /></>}</p>
           <p><b>{scored.length}</b> goals · <b>{assisted.length}</b> assists in range · <b>{scored.filter((g) => g.strength === "PP").length}</b> PP · <b>{scored.filter((g) => g.tags.includes("gwg")).length}</b> GWG</p>
         </div>
       </div>

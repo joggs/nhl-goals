@@ -1,5 +1,5 @@
 import { useData } from "../lib/data";
-import { TeamLogo } from "../components/ui";
+import { TeamLink, TeamLogo } from "../components/ui";
 import type { StandingRow } from "../../shared/types";
 
 const DIVISIONS = [["Eastern", ["Atlantic", "Metropolitan"]], ["Western", ["Central", "Pacific"]]] as const;
@@ -22,7 +22,7 @@ function DivisionTable({ name, rows }: { name: string; rows: StandingRow[] }) {
           {rows.map((r) => (
             <tr key={r.abbrev} className={`${r.divRank <= 3 ? "st-in" : r.wc > 0 && r.wc <= 2 ? "st-wc" : "st-out"}${r.divRank === 3 ? " cut" : ""}`}>
               <td>{r.divRank}</td>
-              <td><span className="pl"><TeamLogo abbrev={r.abbrev} size={22} /> {r.name}{r.wc > 0 && r.wc <= 2 && <span className="tag" title="Wild-card spot">WC{r.wc}</span>}</span></td>
+              <td><span className="pl"><TeamLogo abbrev={r.abbrev} size={22} /> <TeamLink abbrev={r.abbrev}>{r.name}</TeamLink>{r.wc > 0 && r.wc <= 2 && <span className="tag" title="Wild-card spot">WC{r.wc}</span>}</span></td>
               <td>{r.gp}</td><td>{r.w}</td><td>{r.l}</td><td>{r.otl}</td><td><b>{r.pts}</b></td>
               <td className="hide-sm">{r.gp ? r.ptsPct.toFixed(3).replace(/^0/, "") : "–"}</td><td className="hide-sm">{r.rw ?? "–"}</td><td className="hide-sm">{r.row}</td>
               <td className="hide-sm">{r.gf}</td><td className="hide-sm">{r.ga}</td>

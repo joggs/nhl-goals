@@ -44,7 +44,7 @@ export default function Teams() {
                     return (
                       <Link key={t.abbrev} to={`/team/${t.abbrev}`} className={`team-card${favs.includes(t.abbrev) ? " fav" : ""}`} style={{ "--tc": teamColor(t.abbrev).vivid, "--tc2": teamColor(t.abbrev).vivid2 } as React.CSSProperties}>
                         <Watermark abbrev={t.abbrev} side="right" />
-                        <TeamLogo abbrev={t.abbrev} size={54} />
+                        <TeamLogo abbrev={t.abbrev} size={54} link={false} />
                         <div className="team-card-main">
                           <b>{t.name}</b>
                           {sp.pagesOk ? (

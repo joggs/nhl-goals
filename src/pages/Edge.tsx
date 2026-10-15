@@ -90,7 +90,7 @@ export default function Edge() {
                 {teams.map(([abbrev, t], i) => (
                   <tr key={abbrev}>
                     <td>{i + 1}</td>
-                    <td><Link to={`/team/${abbrev}`} className="pl"><TeamLogo abbrev={abbrev} size={22} /> {abbrev}</Link></td>
+                    <td><Link to={`/team/${abbrev}`} className="pl"><TeamLogo abbrev={abbrev} size={22} link={false} /> {abbrev}</Link></td>
                     {TEAM_METRICS.map((m) => <td key={m.key}>{m.fmt(t[m.key].value)} <small className="muted">#{t[m.key].rank}</small></td>)}
                   </tr>
                 ))}

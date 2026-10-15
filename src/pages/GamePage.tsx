@@ -4,7 +4,7 @@ import type { Goal } from "../../shared/types";
 import { useData } from "../lib/data";
 import { byPeriod, headline, shortRecap } from "../lib/recap";
 import { fmtDate, gameStatus, logo } from "../lib/util";
-import { Chip, ClipPlayer, Face, Flag, GoalCard, ShootoutCard, TeamLogo } from "../components/ui";
+import { Chip, ClipPlayer, Face, Flag, GoalCard, ShootoutCard, TeamLink, TeamLogo } from "../components/ui";
 import { GameShotMap } from "../components/GameShotMap";
 import { InjuryCards, recentNews } from "../components/InjuryNews";
 import { useSpoilers } from "../lib/spoilers";
@@ -64,7 +64,7 @@ export default function GamePage() {
           return (
             <div key={t.abbrev} className="sb-team">
               <img className="sb-logo" src={logo(t.abbrev)} alt="" aria-hidden="true" />
-              <b>{t.name}</b>
+              <b><TeamLink abbrev={t.abbrev}>{t.name}</TeamLink></b>
               <span className="sb-abbr">{t.abbrev} · {i ? "Home" : "Away"}</span>
               {!hid && sog !== undefined && <small>{sog} shots on goal{g.finished || g.goals.length ? ` · ${pp} PP goal${pp === 1 ? "" : "s"}` : ""}</small>}
             </div>

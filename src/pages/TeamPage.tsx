@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import type { NewsCat } from "../../shared/types";
 import { useData } from "../lib/data";
 import { useFavorites, useTheme } from "../lib/favorites";
-import { Face, Flag, StarButton, TeamLogo, Watermark } from "../components/ui";
+import { Face, Flag, StarButton, TeamLink, TeamLogo, Watermark } from "../components/ui";
 import { ShotMap } from "../components/ShotMap";
 import { tally } from "./Players";
 import { useEdge } from "../lib/edge";
@@ -147,7 +147,7 @@ export default function TeamPage() {
               <li key={g.id}>
                 <Link to={`/game/${g.id}`} className="g-row">
                   <span className={`g-num res ${won ? "w" : "l"}`}>{won ? "W" : "L"}</span><span className="muted">{fmtDate(g.date)}</span>
-                  <span>{home ? "vs" : "@"} <TeamLogo abbrev={opp.abbrev} size={18} /> {opp.abbrev}</span><b>{me.score}–{opp.score}</b>{ext}
+                  <span>{home ? "vs" : "@"} <TeamLogo abbrev={opp.abbrev} size={18} /> <TeamLink abbrev={opp.abbrev} /></span><b>{me.score}–{opp.score}</b>{ext}
                 </Link>
               </li>
             );

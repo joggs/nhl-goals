@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { Goal, ShootoutGoal } from "../../shared/types";
 import { shotPhrase } from "../../shared/describe";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -112,9 +112,26 @@ export const Watermark = ({ abbrev, side = "left" }: { abbrev: string; side?: "l
   <img className={`wm ${side}`} src={logo(abbrev)} alt="" aria-hidden="true" loading="lazy" />
 );
 
-export const TeamLogo = ({ abbrev, size = 28 }: { abbrev: string; size?: number }) => (
-  <img className="logo" src={logo(abbrev)} width={size} height={size} alt={abbrev} loading="lazy" />
-);
+/**
+ * Clickable team reference that opens the team page. It is a span with role="link", not an <a>, so it also works
+ * inside rows and cards that are links themselves (it stops the click from reaching them).
+ */
+export function TeamLink({ abbrev, children, className }: { abbrev: string; children?: React.ReactNode; className?: string }) {
+  const navigate = useNavigate();
+  const go = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); navigate(`/team/${abbrev}`); };
+  return (
+    <span role="link" tabIndex={0} className={`team-link${className ? ` ${className}` : ""}`} title={`Open ${abbrev}`}
+      onClick={go} onKeyDown={(e) => { if (e.key === "Enter") go(e); }}>
+      {children ?? abbrev}
+    </span>
+  );
+}
+
+/** Team logo; links to the team page unless `link` is false (pickers, or when the parent already links there). */
+export const TeamLogo = ({ abbrev, size = 28, link = true }: { abbrev: string; size?: number; link?: boolean }) => {
+  const img = <img className="logo" src={logo(abbrev)} width={size} height={size} alt={abbrev} loading="lazy" />;
+  return link && abbrev ? <TeamLink abbrev={abbrev}>{img}</TeamLink> : img;
+};
 
 export function Face({ id, size = 36 }: { id: number; size?: number }) {
   const { players } = useData();
@@ -171,7 +188,7 @@ export function GoalCard({ goal, showGame = true, compact = false, minimap = fal
   const scorerLine = (
     <p className="goal-who">
       <Link to={`/player/${goal.scorer.id}`}><Flag code={info?.nat} /> {goal.scorer.name}</Link>
-      <span> · {goal.team}{goal.seasonGoal ? ` · goal #${goal.seasonGoal}` : ""}</span>
+      <span> · <TeamLink abbrev={goal.team} />{goal.seasonGoal ? ` · goal #${goal.seasonGoal}` : ""}</span>
     </p>
   );
   const assistLine = goal.assists.length > 0 ? (

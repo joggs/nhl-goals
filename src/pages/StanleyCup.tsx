@@ -20,7 +20,7 @@ function SeriesCard({ s, on, pick }: { s?: PlayoffSeries; on: boolean; pick: () 
     const cls = s.winner ? (s.winner === t.abbrev ? " win" : " lose") : "";
     return (
       <div className={`sd${cls}`}>
-        <TeamLogo abbrev={t.abbrev} size={22} /><span className="sd-name">{t.abbrev}</span><small>{t.seed}</small><b>{t.wins}</b>
+        <TeamLogo abbrev={t.abbrev} size={22} link={false} /><span className="sd-name">{t.abbrev}</span><small>{t.seed}</small><b>{t.wins}</b>
       </div>
     );
   };

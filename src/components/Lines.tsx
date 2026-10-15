@@ -3,7 +3,7 @@ import type { GoalieLine, LineUnit, LineupSlot, SkaterLine, TeamLines } from "..
 import { useData } from "../lib/data";
 import { useLines, useLineups, useSeasonStats } from "../lib/player";
 import { fmtDate, fmtTime, ordinal, shortName, signed, surname } from "../lib/util";
-import { Face, Flag, TeamLogo } from "./ui";
+import { Face, Flag, TeamLink, TeamLogo } from "./ui";
 
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
 const keyOf = (ids: number[]) => [...ids].sort((a, b) => a - b).join(",");
@@ -138,7 +138,7 @@ export function TeamLinesView({ abbrev }: { abbrev: string }) {
     <div className="lines">
       <p className="lines-src muted">
         {lu ? (
-          <>Projected line-up{next && <> for <b>{next.home.abbrev === abbrev ? "vs" : "@"} <TeamLogo abbrev={next.home.abbrev === abbrev ? next.away.abbrev : next.home.abbrev} size={16} /> {next.home.abbrev === abbrev ? next.away.abbrev : next.home.abbrev}</b> · {fmtDate(next.date)} {fmtTime(next.start)}</>}
+          <>Projected line-up{next && <> for <b>{next.home.abbrev === abbrev ? "vs" : "@"} <TeamLogo abbrev={next.home.abbrev === abbrev ? next.away.abbrev : next.home.abbrev} size={16} /> <TeamLink abbrev={next.home.abbrev === abbrev ? next.away.abbrev : next.home.abbrev} /></b> · {fmtDate(next.date)} {fmtTime(next.start)}</>}
             {" "}· from <a href={lu.url} target="_blank" rel="noreferrer">DailyFaceoff</a>{lu.reporter && <> via {lu.sourceUrl ? <a href={lu.sourceUrl} target="_blank" rel="noreferrer">{lu.reporter}</a> : lu.reporter}</>} · updated {fmtDate(lu.updated.slice(0, 10), { day: "numeric", month: "short" })}</>
         ) : lines && <>As deployed in the latest game, {lines.home ? "vs" : "@"} {lines.opp} · {fmtDate(lines.date)}</>}
         <br />Numbers together come from NHL shift charts: time on the ice at the same time at 5-on-5 this season, and the goals for and against meanwhile.
