@@ -9,7 +9,7 @@ import { Chip, Face, Flag, GoalCard, PlaylistModal, TeamLink, TeamLogo, Watermar
 import { NewsRow } from "../components/NewsList";
 import { usePlayerNews, useSeasonStats } from "../lib/player";
 import { ShotMap } from "../components/ShotMap";
-import { fmtDate, shortName, signed } from "../lib/util";
+import { fmtDate, shortName, signed, surname } from "../lib/util";
 
 interface Row { id: number; points: number; goals: number; assists: number; ppg: number; shg: number; gwg: number; hat: number; en: number; pm: number }
 type SortKey = "points" | "goals" | "assists" | "ppg" | "shg" | "gwg" | "hat" | "en" | "pm";
@@ -92,6 +92,17 @@ export function Players() {
       pm: [...eligible].sort((a, b) => b[1].pm - a[1].pm || a[1].gp - b[1].gp).slice(0, 5).map(([id, s]) => ({ id, v: signed(s.pm) })),
     };
   }, [st, picks]);
+  /** One leader: surname on its own line (full name on hover), nationality and team below. */
+  const leaderRow = (id: number | string, i: number, value: React.ReactNode) => {
+    const p = players[id];
+    return (
+      <Link key={id} to={`/player/${id}`} className="leader stacked" title={p?.n}>
+        <span className="rank">{i + 1}</span><Face id={Number(id)} size={30} />
+        <span className="leader-name"><b>{p?.n ? surname(p.n) : id}</b><small><Flag code={p?.nat} />{p?.t && <> <TeamLogo abbrev={p.t} size={14} /> {p.t}</>}</small></span>
+        <b>{value}</b>
+      </Link>
+    );
+  };
   const click = (key: SortKey) => { setSort((s) => (s.key === key ? { key, dir: (-s.dir) as 1 | -1 } : { key, dir: -1 })); setN(50); };
   return (
     <section>
@@ -103,37 +114,17 @@ export function Players() {
       <FilterBar f={f} set={set} hide={["natrole"]} />
       {loading ? <div className="spinner" /> : (
         <>
-          <div className="cols">
+          <div className="cols leaders">
             {([["points", "Points"], ["goals", "Goals"], ["assists", "Assists"]] as const).map(([key, title]) => (
               <div key={key}>
                 <h3>{title}</h3>
-                {leaders(key).map((r, i) => {
-                  const p = players[r.id];
-                  return (
-                    <Link key={r.id} to={`/player/${r.id}`} className="leader">
-                      <span className="rank">{i + 1}</span><Face id={r.id} size={28} />
-                      <span className="leader-name" title={p?.n}><Flag code={p?.nat} /> {p?.n ? shortName(p.n) : r.id}</span>
-                      {p?.t && <TeamLogo abbrev={p.t} size={18} />}
-                      <b>{r[key]}</b>
-                    </Link>
-                  );
-                })}
+                {leaders(key).map((r, i) => leaderRow(r.id, i, r[key]))}
               </div>
             ))}
             {([["toi", "Ice time", "Average time on ice per game, regular season (NHL stats; at least half the games)"], ["pm", "Plus/minus", "Regular season (NHL stats; at least half the games)"]] as const).map(([key, title, tip]) => seasonTop[key].length > 0 && (
               <div key={key}>
                 <h3 title={tip}>{title}</h3>
-                {seasonTop[key].map(({ id, v }, i) => {
-                  const p = players[id];
-                  return (
-                    <Link key={id} to={`/player/${id}`} className="leader">
-                      <span className="rank">{i + 1}</span><Face id={Number(id)} size={28} />
-                      <span className="leader-name" title={p?.n}><Flag code={p?.nat} /> {p?.n ? shortName(p.n) : id}</span>
-                      {p?.t && <TeamLogo abbrev={p.t} size={18} />}
-                      <b>{v}</b>
-                    </Link>
-                  );
-                })}
+                {seasonTop[key].map(({ id, v }, i) => leaderRow(id, i, v))}
               </div>
             ))}
           </div>

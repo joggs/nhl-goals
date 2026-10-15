@@ -374,3 +374,6 @@ a.tk:hover { text-decoration: none; border-color: var(--accent); background: col
 .used-names { font-size: .8rem; line-height: 1.25; min-width: 0; } .used-names a { color: var(--text); } .used-names a:hover { color: var(--accent); } .used-row small { white-space: nowrap; }
 .pm-up { color: var(--good); } .pm-down { color: var(--goal); }
 .team-link { cursor: pointer; } .team-link:hover { color: var(--accent); text-decoration: underline; } .team-link:hover .logo { transform: scale(1.12); } .team-link .logo { transition: transform .12s; } .team-link:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+.cols.leaders { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; } @media (max-width: 760px) { .cols.leaders { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 480px) { .cols.leaders { grid-template-columns: 1fr; } } .cols.leaders > div { padding: .1rem .75rem .6rem; }
+.leader.stacked { gap: .45rem; padding: .35rem 0; } .leader.stacked .leader-name { display: grid; line-height: 1.2; }
+.leader.stacked .leader-name b { overflow: hidden; text-overflow: ellipsis; font-weight: 600; text-align: left; min-width: 0; } .leader.stacked .leader-name small { display: flex; align-items: center; gap: .25rem; color: var(--muted); font-size: .72rem; }
