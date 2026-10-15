@@ -377,3 +377,6 @@ a.tk:hover { text-decoration: none; border-color: var(--accent); background: col
 .cols.leaders { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; } @media (max-width: 760px) { .cols.leaders { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 480px) { .cols.leaders { grid-template-columns: 1fr; } } .cols.leaders > div { padding: .1rem .75rem .6rem; }
 .leader.stacked { gap: .45rem; padding: .35rem 0; } .leader.stacked .leader-name { display: grid; line-height: 1.2; }
 .leader.stacked .leader-name b { overflow: hidden; text-overflow: ellipsis; font-weight: 600; text-align: left; min-width: 0; } .leader.stacked .leader-name small { display: flex; align-items: center; gap: .25rem; color: var(--muted); font-size: .72rem; }
+/* Pages built from tables and grids get more room; reading pages keep the narrow column. */
+main:has(> section.wide) { max-width: 1320px; }
+@media (min-width: 1200px) { .wide .cols.leaders { grid-template-columns: repeat(5, minmax(0, 1fr)); } }

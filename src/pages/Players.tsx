@@ -105,7 +105,7 @@ export function Players() {
   };
   const click = (key: SortKey) => { setSort((s) => (s.key === key ? { key, dir: (-s.dir) as 1 | -1 } : { key, dir: -1 })); setN(50); };
   return (
-    <section>
+    <section className="wide">
       <div className="row between"><h1>Scoring leaders{pos.id || rookie ? <small className="muted"> · {rookie ? "Rookie " : ""}{pos.id ? pos.label.toLowerCase() : rookie ? "skaters" : ""}</small> : null}</h1><span className="muted">{rows.length} players · {goals.length} goals</span></div>
       <div className="row">
         {POS_GROUPS.map((g) => <Chip key={g.id} active={pos.id === g.id} onClick={() => setParam("pos", g.id)}>{g.label}</Chip>)}
