@@ -67,7 +67,8 @@ function UnitStats({ unit, label }: { unit?: LineUnit; label: string }) {
   );
 }
 
-function Unit({ title, fwd, def, ctx, find }: { title: string; fwd: (LineupSlot | { id: number })[]; def: (LineupSlot | { id: number })[]; ctx: Ctx; find: (ids: (number | undefined)[]) => LineUnit | undefined }) {
+/** `foot` replaces the line and pair numbers (special teams); null leaves the footer out. */
+function Unit({ title, fwd, def, ctx, find, foot }: { title: string; fwd: (LineupSlot | { id: number })[]; def: (LineupSlot | { id: number })[]; ctx: Ctx; find: (ids: (number | undefined)[]) => LineUnit | undefined; foot?: React.ReactNode }) {
   const members = [...fwd, ...def].map((s) => s.id).filter((x): x is number => !!x);
   const pts = members.reduce((s, id) => s + formOf(ctx.lines?.form[id]).pts, 0);
   const h = unitHeat(pts, members.length);
@@ -83,10 +84,12 @@ function Unit({ title, fwd, def, ctx, find }: { title: string; fwd: (LineupSlot 
         <div className="ice-row f">{fwd.map((s, i) => <Token key={s.id ?? i} slot={s} ctx={ctx} />)}</div>
         {def.length > 0 && <div className="ice-row d">{def.map((s, i) => <Token key={s.id ?? i} slot={s} ctx={ctx} />)}</div>}
       </div>
-      <footer>
-        {fwd.length > 0 && <UnitStats unit={find(fwd.map((s) => s.id))} label="Line" />}
-        {def.length > 0 && <UnitStats unit={find(def.map((s) => s.id))} label="Pair" />}
-      </footer>
+      {foot === undefined ? (
+        <footer>
+          {fwd.length > 0 && <UnitStats unit={find(fwd.map((s) => s.id))} label="Line" />}
+          {def.length > 0 && <UnitStats unit={find(def.map((s) => s.id))} label="Pair" />}
+        </footer>
+      ) : foot && <footer>{foot}</footer>}
     </article>
   );
 }
@@ -115,7 +118,17 @@ export function TeamLinesView({ abbrev }: { abbrev: string }) {
   const units = lu
     ? [1, 2, 3, 4].map((n) => ({ fwd: g[`f${n}`] ?? [], def: g[`d${n}`] ?? [] })).filter((u) => u.fwd.length || u.def.length)
     : [0, 1, 2, 3].map((i) => ({ fwd: (lines!.fwd[i]?.ids ?? []).map((id) => ({ id })), def: (lines!.def[i]?.ids ?? []).map((id) => ({ id })) })).filter((u) => u.fwd.length || u.def.length);
-  const pp = lu ? [g.pp1, g.pp2].filter(Boolean).map((u) => u!.map((s) => s.id)) : (lines?.pp ?? []).map((u) => u.ids);
+  type Slot = LineupSlot | { id: number };
+  const pp: Slot[][] = lu ? [g.pp1, g.pp2].filter((u): u is LineupSlot[] => !!u?.length) : (lines?.pp ?? []).map((u) => u.ids.map((id) => ({ id })));
+  const pk: Slot[][] = lu ? [g.pk1, g.pk2].filter((u): u is LineupSlot[] => !!u?.length) : [];
+  /** Special-teams units drawn like the lines: forwards up front, defencemen behind. */
+  const split = (u: Slot[]) => ({ fwd: u.filter((s) => !s.id || players[s.id]?.pos !== "D"), def: u.filter((s) => !!s.id && players[s.id]?.pos === "D") });
+  const ppFoot = (u: Slot[]) => {
+    const st = find(u.map((s) => s.id));
+    return !st || st.toi < 60
+      ? <small className="muted">New unit, under a minute together on the power play this season</small>
+      : <small className="unit-stats">On the power play: <b>{mmss(st.toi)}</b> together · {st.gp} GP · <b>{st.gf}</b> goals</small>;
+  };
   const goalies = lu ? (g.g ?? []).map((s) => s.id) : [lines?.goalie];
   const out = [...(g.ir ?? []).map((s) => ({ id: s.id, name: s.name, why: injury(s.injury) ?? "Injured" })), ...(lines?.scratches ?? []).filter((id) => !(g.ir ?? []).some((s) => s.id === id)).map((id) => ({ id, name: players[id]?.n ?? String(id), why: "Scratched last game" }))];
   const iceTime = Object.entries(ctx.skaters).filter(([id]) => players[id]?.t === abbrev).sort((a, b) => b[1].toi - a[1].toi).slice(0, 12);
@@ -133,6 +146,8 @@ export function TeamLinesView({ abbrev }: { abbrev: string }) {
       <div className="lines-grid">
         <div className="units">
           {units.map((u, i) => <Unit key={i} title={`${ordinal(i + 1)} line`} fwd={u.fwd} def={u.def} ctx={ctx} find={find} />)}
+          {pp.map((u, i) => <Unit key={`pp${i}`} title={`Power play ${i + 1}`} {...split(u)} ctx={ctx} find={find} foot={ppFoot(u)} />)}
+          {pk.map((u, i) => <Unit key={`pk${i}`} title={`Penalty kill ${i + 1}`} {...split(u)} ctx={ctx} find={find} foot={null} />)}
         </div>
         <aside className="lines-side">
           <div>
@@ -148,27 +163,6 @@ export function TeamLinesView({ abbrev }: { abbrev: string }) {
             })}
             {lines?.goalie && <p className="muted small-note">Played last game: {players[lines.goalie]?.n}</p>}
           </div>
-          {pp.length > 0 && (
-            <div>
-              <h3>Power play</h3>
-              {pp.map((ids, i) => {
-                const u = find(ids);
-                return (
-                  <div key={i} className="pp-row">
-                    <b>PP{i + 1}</b><Faces ids={ids} />
-                    <small className="muted">{u ? `${mmss(u.toi)} · ${u.gf} GF` : "–"}</small>
-                  </div>
-                );
-              })}
-              <p className="muted small-note">Time on the power play together this season, and goals meanwhile.</p>
-            </div>
-          )}
-          {lu && (g.pk1 || g.pk2) && (
-            <div>
-              <h3>Penalty kill</h3>
-              {[g.pk1, g.pk2].filter(Boolean).map((u, i) => <div key={i} className="pp-row"><b>PK{i + 1}</b><Faces ids={u!.map((s) => s.id)} /></div>)}
-            </div>
-          )}
           {out.length > 0 && (
             <div>
               <h3>Out</h3>
