@@ -16,7 +16,7 @@ import { fmtDate, ordinal } from "../lib/util";
 
 export default function TeamPage() {
   const { abbrev = "" } = useParams();
-  const [tab, setTab] = useState<"overview" | "lines" | "players" | "results" | "news">("overview");
+  const [tab, setTab] = useState<"overview" | "lines" | "players" | "results" | "news">("lines");
   const [ncat, setNcat] = useState<NewsCat | "">("");
   const { teams, standings, goals, games, players, season, news } = useData();
   const { teams: favs } = useFavorites();
