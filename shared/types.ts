@@ -80,6 +80,12 @@ export interface PlayerInfo {
   h?: string;      // headshot path after /mugs/nhl/
 }
 
+/** Official season totals from the NHL stats API. TOI is average seconds per game. */
+export interface SkaterLine { gp: number; g: number; a: number; p: number; pm: number; ppp: number; s: number; toi: number }
+export interface GoalieLine { gp: number; w: number; l: number; otl: number; gaa: number; svp: number; so: number }
+/** stats-{season}.json (regular season) and stats-{season}-po.json (playoffs), keyed by player id. */
+export interface PlayerStats { season: number; type: 2 | 3; skaters: Record<string, SkaterLine>; goalies: Record<string, GoalieLine> }
+
 export interface TeamInfo { abbrev: string; name: string; division?: string; conference?: string }
 
 export interface Manifest {

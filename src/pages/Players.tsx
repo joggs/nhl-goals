@@ -1,11 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { SpoilerGate } from "../lib/spoilers";
 import { useData } from "../lib/data";
 import { rangeBounds, useFilteredGoals, useGoalFilter } from "../lib/filters";
 import { InjuryBadge } from "../components/InjuryNews";
 import { FilterBar } from "../components/FilterBar";
-import { Face, Flag, GoalCard, TeamLogo, Watermark } from "../components/ui";
+import { Chip, Face, Flag, GoalCard, PlaylistModal, TeamLogo, Watermark } from "../components/ui";
+import { NewsRow } from "../components/NewsList";
+import { usePlayerNews, useSeasonStats } from "../lib/player";
 import { ShotMap } from "../components/ShotMap";
 import { fmtDate } from "../lib/util";
 
@@ -122,16 +124,96 @@ export function Players() {
   );
 }
 
+type Tab = "overview" | "goals" | "assists" | "shots";
+const LATEST = 5;
+
+const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
+const pct = (x: number, digits = 1) => (x * 100).toFixed(digits);
+
+/** Official season totals, regular season and playoffs. Not affected by the filters: it is the NHL's own line. */
+function SeasonLine({ pid, goalie }: { pid: number; goalie: boolean }) {
+  const { season, manifest } = useData();
+  const st = useSeasonStats(season);
+  if (!st) return null;
+  const label = manifest.seasons.find((s) => s.id === season)?.label ?? String(season);
+  const rows = ([["Regular season", st.rs], ["Playoffs", st.po]] as const).map(([name, f]) => [name, goalie ? f?.goalies[pid] : f?.skaters[pid]] as const).filter(([, l]) => l);
+  if (!rows.length) return null;
+  const head = goalie ? ["GP", "W", "L", "OTL", "GAA", "SV%", "SO"] : ["GP", "G", "A", "P", "+/-", "PPP", "SOG", "S%", "TOI"];
+  const cells = (l: any): (string | number)[] => goalie
+    ? [l.gp, l.w, l.l, l.otl, l.gaa.toFixed(2), l.svp.toFixed(3).replace(/^0/, ""), l.so]
+    : [l.gp, l.g, l.a, l.p, l.pm > 0 ? `+${l.pm}` : l.pm, l.ppp, l.s, l.s ? pct(l.g / l.s) : "–", mmss(l.toi)];
+  const bold = goalie ? [4, 5] : [3];
+  return (
+    <div className="table-scroll statline">
+      <table className="table">
+        <thead><tr><th>{label}</th>{head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
+        <tbody>{rows.map(([name, l]) => (
+          <tr key={name}><td>{name}</td>{cells(l).map((c, i) => <td key={i}>{bold.includes(i) ? <b>{c}</b> : c}</td>)}</tr>
+        ))}</tbody>
+      </table>
+    </div>
+  );
+}
+
+/** A slice of the scoring table around the player, same order and filters as the Scoring leaders page. */
+function PointsRace({ pid, goals, query }: { pid: number; goals: ReturnType<typeof useFilteredGoals>; query: string }) {
+  const { players, manifest } = useData();
+  const table = useMemo(() => tally(goals).sort((a, b) => b.points - a.points || b.goals - a.goals || (players[a.id]?.n ?? "").localeCompare(players[b.id]?.n ?? "")), [goals, players]);
+  const i = table.findIndex((r) => r.id === pid);
+  const nat = players[pid]?.nat;
+  const qs = (extra?: string) => { const q = new URLSearchParams(query); q.delete("tab"); if (extra) q.set("nat", extra); const s = q.toString(); return s ? `?${s}` : ""; };
+  if (i < 0) return <div><h3>Points race</h3><p className="muted">No points in this range.</p></div>;
+  const from = Math.max(0, Math.min(i - 2, table.length - 5)), slice = table.slice(from, from + 5);
+  const countrymen = nat ? table.filter((r) => players[r.id]?.nat === nat) : [];
+  const row = (r: Row, rank: number) => {
+    const p = players[r.id];
+    return (
+      <Link key={r.id} to={`/player/${r.id}`} className={`leader${r.id === pid ? " me" : ""}`}>
+        <span className="rank">{rank}</span><Face id={r.id} size={26} />
+        <span className="leader-name"><Flag code={p?.nat} /> {p?.n ?? r.id}</span>
+        {p?.t && <TeamLogo abbrev={p.t} size={18} />}
+        <small className="muted race-ga">{r.goals}+{r.assists}</small><b>{r.points}</b>
+      </Link>
+    );
+  };
+  return (
+    <div className="race">
+      <h3>Points race</h3>
+      {from > 0 && <>{row(table[0], 1)}<div className="race-gap" aria-hidden="true">⋯</div></>}
+      {slice.map((r, k) => row(r, from + k + 1))}
+      <p className="muted race-foot">
+        {nat && countrymen.length > 1 && <><Link to={`/players${qs(nat)}`}>#{countrymen.findIndex((r) => r.id === pid) + 1} of {countrymen.length} from {manifest.countries[nat] ?? nat}</Link> · </>}
+        <Link to={`/players${qs()}`}>Full table</Link>
+      </p>
+    </div>
+  );
+}
+
+function PlayerNews({ pid }: { pid: number }) {
+  const { news } = useData();
+  const live = usePlayerNews(pid);
+  const items = (live ?? (live === null ? news.filter((n) => n.players.includes(pid)) : [])).slice(0, 6);
+  return (
+    <div className="news">
+      <h3>News</h3>
+      {live === undefined ? <div className="spinner small" /> : items.length ? <ul>{items.map((n) => <NewsRow key={n.id} n={n} day />)}</ul> : <p className="muted">No stories on NHL.com.</p>}
+    </div>
+  );
+}
+
 export function PlayerPage() {
   const { id } = useParams();
   const pid = Number(id);
-  const { players, goals: all, loading, manifest, gameById, anchor } = useData();
+  const { players, loading, manifest, gameById, anchor } = useData();
   const p = players[pid];
   const [f, set] = useGoalFilter({ range: "season" });
+  const [sp, setSp] = useSearchParams();
+  const tab = (["goals", "assists", "shots"].includes(sp.get("tab") ?? "") ? sp.get("tab") : "overview") as Tab;
+  const setTab = (t: Tab) => { const q = new URLSearchParams(sp); if (t === "overview") q.delete("tab"); else q.set("tab", t); setSp(q, { replace: true }); };
   const mine = useFilteredGoals({ ...f, player: undefined });
   const scored = mine.filter((g) => g.scorer.id === pid);
   const assisted = mine.filter((g) => g.assists.some((a) => a.id === pid));
-  const [tab, setTab] = useState<"goals" | "assists">("goals");
+  const [playAll, setPlayAll] = useState(false);
   const stats = useMemo(() => {
     const count = (fn: (g: (typeof scored)[number]) => string | undefined) => {
       const m = new Map<string, number>();
@@ -140,7 +222,6 @@ export function PlayerPage() {
     };
     return { shots: count((g) => g.shotType), zones: count((g) => g.zone), vs: count((g) => g.against) };
   }, [scored]);
-  void all;
   const pick = useCallback((sh: { player: number; game: number }) => {
     if (sh.player !== pid || (f.type && String(sh.game).slice(4, 6) !== f.type)) return false;
     const [a, b] = rangeBounds(f.range, anchor, f.from, f.to);
@@ -149,11 +230,13 @@ export function PlayerPage() {
   }, [pid, f.type, f.range, f.from, f.to, anchor, gameById]);
   if (loading) return <div className="spinner" />;
   const name = p?.n ?? scored[0]?.scorer.name ?? `Player ${pid}`;
-  const list = tab === "goals" ? scored : assisted;
-  const shown = list.slice(0, 60);
+  const goalie = p?.pos === "G";
+  const list = tab === "assists" ? assisted : scored;
   const bar = (rows: [string, number][]) => rows.slice(0, 6).map(([k, v]) => (
     <div key={k} className="bar"><span>{k}</span><i style={{ width: `${(v / rows[0][1]) * 100}%` }} /><b>{v}</b></div>
   ));
+  const goalList = (goals: typeof scored) => goals.map((g) => <div key={g.id}><small className="muted">{fmtDate(g.date)}</small><GoalCard goal={g} minimap /></div>);
+  const withClip = scored.filter((g) => g.clip).length;
   return (
     <section>
       <div className="profile">
@@ -166,8 +249,32 @@ export function PlayerPage() {
           <p><b>{scored.length}</b> goals · <b>{assisted.length}</b> assists in range · <b>{scored.filter((g) => g.strength === "PP").length}</b> PP · <b>{scored.filter((g) => g.tags.includes("gwg")).length}</b> GWG</p>
         </div>
       </div>
+      <SeasonLine pid={pid} goalie={goalie} />
       <FilterBar f={{ ...f, player: undefined }} set={set} hide={["nat", "team"]} />
-      {scored.length > 0 && (
+      <div className="row">
+        <Chip active={tab === "overview"} onClick={() => setTab("overview")}>Overview</Chip>
+        <Chip active={tab === "goals"} onClick={() => setTab("goals")}>Goals ({scored.length})</Chip>
+        <Chip active={tab === "assists"} onClick={() => setTab("assists")}>Assists ({assisted.length})</Chip>
+        {scored.length > 0 && <Chip active={tab === "shots"} onClick={() => setTab("shots")}>Shot profile</Chip>}
+      </div>
+      {tab === "overview" && (
+        <div className="ov">
+          {(!goalie || scored.length > 0) && <div>
+            <div className="row between">
+              <h3>Latest goals</h3>
+              {withClip > 1 && <button className="chip" onClick={() => setPlayAll(true)} title="Play every goal in range, newest first">▶ Play all {withClip}</button>}
+            </div>
+            {scored.length === 0 && <p className="muted">No goals in this range.</p>}
+            {goalList(scored.slice(0, LATEST))}
+            {scored.length > LATEST && <button className="more" onClick={() => setTab("goals")}>All {scored.length} goals</button>}
+          </div>}
+          <div className="ov-side">
+            {!goalie && <PointsRace pid={pid} goals={mine} query={sp.toString()} />}
+            <PlayerNews pid={pid} />
+          </div>
+        </div>
+      )}
+      {tab === "shots" && scored.length > 0 && (
         <div className="cols">
           <div><h3>Shot types</h3>{bar(stats.shots)}</div>
           <div><h3>Where from</h3>{bar(stats.zones)}</div>
@@ -175,12 +282,13 @@ export function PlayerPage() {
           <div><h3>Goal map</h3><ShotMap goals={scored} pick={pick} /></div>
         </div>
       )}
-      <div className="row">
-        <button className={`chip${tab === "goals" ? " on" : ""}`} onClick={() => setTab("goals")}>Goals ({scored.length})</button>
-        <button className={`chip${tab === "assists" ? " on" : ""}`} onClick={() => setTab("assists")}>Assists ({assisted.length})</button>
-      </div>
-      {shown.length === 0 && <p className="empty">Nothing in this range.</p>}
-      {shown.map((g) => <div key={g.id}><small className="muted">{fmtDate(g.date)}</small><GoalCard goal={g} minimap /></div>)}
+      {(tab === "goals" || tab === "assists") && (
+        <>
+          {list.length === 0 && <p className="empty">Nothing in this range.</p>}
+          {goalList(list.slice(0, 60))}
+        </>
+      )}
+      {playAll && <PlaylistModal goals={scored} onClose={() => setPlayAll(false)} />}
     </section>
   );
 }

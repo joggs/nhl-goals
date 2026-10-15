@@ -9,7 +9,8 @@ export const CATS: [NewsCat, string, string][] = [
 ];
 const label = (c: NewsCat) => CATS.find((x) => x[0] === c)!;
 
-function Row({ n }: { n: NewsItem }) {
+/** One headline. `day` shows the date instead of the time, for lists not grouped by day. */
+export function NewsRow({ n, day }: { n: NewsItem; day?: boolean }) {
   const isRisky = useRisky();
   const [open, setOpen] = useState(false);
   const [, name, icon] = label(n.cat);
@@ -20,7 +21,7 @@ function Row({ n }: { n: NewsItem }) {
       {!open && isRisky(n)
         ? <span>{name.replace(/s$/, "")} hidden <button className="chip" onClick={() => setOpen(true)} title="May mention a result">Show</button></span>
         : <a href={`https://www.nhl.com/news/${n.id}`} target="_blank" rel="noreferrer">{n.headline}</a>}
-      <small className="muted">{new Date(n.date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</small>
+      <small className="muted">{day ? fmtDate(n.date.slice(0, 10), { day: "numeric", month: "short", ...(n.date.slice(0, 4) !== String(new Date().getFullYear()) && { year: "numeric" }) }) : new Date(n.date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</small>
     </li>
   );
 }
@@ -49,7 +50,7 @@ export function NewsList({ items, cat, onCat, limit = 120 }: { items: NewsItem[]
       {[...days].map(([d, rows]) => (
         <div key={d} className="news">
           <h3>{fmtDate(d)}</h3>
-          <ul>{rows.map((n) => <Row key={n.id} n={n} />)}</ul>
+          <ul>{rows.map((n) => <NewsRow key={n.id} n={n} />)}</ul>
         </div>
       ))}
       {!more && shown.length > limit && <p><button className="chip" onClick={() => setMore(true)}>Show {shown.length - limit} more</button></p>}
