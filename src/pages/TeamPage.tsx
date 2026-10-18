@@ -60,7 +60,7 @@ export default function TeamPage() {
           <h1>{team.name}</h1>
           <p className="muted">{team.division} Division · {team.conference} Conference{r ? ` · ${ordinal(r.divRank)} in division${r.wc > 0 && r.wc <= 2 ? ` · wild card ${r.wc}` : ""}` : ""}</p>
           {r && <p><b>{r.w}-{r.l}-{r.otl}</b> · <b>{r.pts}</b> pts · GF {r.gf} · GA {r.ga} · L10 {r.l10}{r.streak && <> · streak <b>{r.streak}</b></>}</p>}
-          <InjuryCards items={recentNews(news, { teams: [abbrev], days: 14, latestPerPlayer: true }).slice(0, 3)} />
+          <InjuryCards items={recentNews(news, { teams: [abbrev], days: 14, latestPerPlayer: true, injuredOnly: true }).slice(0, 3)} />
         </div>
         <div className="team-hero-tools">
           <StarButton abbrev={abbrev} />

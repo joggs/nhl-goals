@@ -16,7 +16,12 @@ export function useRisky() {
   return (n: NewsItem) => sp.on && (n.cat === "recap" || (n.cat === "injury" ? RESULT : RESULT_LOOSE).test(n.headline) || (!!n.gameId && sp.hidden(gameById.get(n.gameId))));
 }
 
-export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: number; days: number; until?: string; latestPerPlayer?: boolean; cat?: NewsCat }) => {
+/** Headlines that say a player is back; a name alone would read as "injured". Heuristic. */
+const BACK = /\b(returns?|activated|cleared|debuts?|back in (the )?lineup)\b/i;
+const isBack = (n: NewsItem) => n.cat === "injury" && BACK.test(n.headline);
+
+/** `injuredOnly` (with `latestPerPlayer`) drops players whose latest story says they are back. */
+export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: number; days: number; until?: string; latestPerPlayer?: boolean; injuredOnly?: boolean; cat?: NewsCat }) => {
   const from = Date.now() - opts.days * 86400e3;
   const seen = new Set<number>();
   return news.filter((n) =>
@@ -28,7 +33,8 @@ export const recentNews = (news: NewsItem[], opts: { teams?: string[]; player?: 
       if (n.players.every((p) => seen.has(p))) return false;
       n.players.forEach((p) => seen.add(p));
       return true;
-    });
+    })
+    .filter((n) => !opts.injuredOnly || !isBack(n));
 };
 
 function Line({ n }: { n: NewsItem }) {
@@ -39,7 +45,7 @@ function Line({ n }: { n: NewsItem }) {
   const who = n.players.length === 1 ? players[n.players[0]]?.n : undefined;
   return (
     <li className="news-row">
-      <span aria-hidden="true">🚑</span>
+      <span aria-hidden="true">{isBack(n) ? "✅" : "🚑"}</span>
       {risky ? (
         <span>{who ?? n.teams.join(" / ")}: injury news <button className="chip" onClick={() => setOpen(true)} title="The headline may mention a result">Show</button></span>
       ) : (
@@ -63,7 +69,7 @@ function Card({ n }: { n: NewsItem }) {
     : <small><a href={`https://www.nhl.com/news/${n.id}`} target="_blank" rel="noreferrer">{n.headline}</a></small>;
   return (
     <div className="star-card news-card">
-      <span aria-hidden="true">🚑</span>
+      <span aria-hidden="true">{isBack(n) ? "✅" : "🚑"}</span>
       {pid && players[pid]?.h ? <Face id={pid} size={44} /> : <TeamLogo abbrev={n.teams[0]} size={36} />}
       <div><b>{who ?? n.teams.join(" / ")}</b>{who && n.teams[0] && <span className="news-team"> {n.teams[0]}</span>}<br />{body}</div>
     </div>
@@ -101,9 +107,6 @@ export function InjuryBadge({ player }: { player: number }) {
 
 const etDay = (iso: string) => new Date(iso).toLocaleDateString("sv-SE", { timeZone: "America/New_York" });
 
-/** Headlines that say a player is back; a name alone would read as "injured". Heuristic. */
-const BACK = /\b(returns?|activated|cleared|debuts?|back in (the )?lineup)\b/i;
-
 /** One compact line on a game card: names of players with injury news for either team, linked to the story. */
 export function GameInjuries({ game }: { game: Pick<Game, "date" | "away" | "home"> }) {
   const { news, players } = useData();
@@ -125,10 +128,10 @@ export function GameInjuries({ game }: { game: Pick<Game, "date" | "away" | "hom
   return (
     <div className="gc-inj">
       {rows.slice(0, 5).map(({ pid, team, n }) => (
-        <span key={pid} role="link" tabIndex={0} className="gc-inj-item" title={BACK.test(n.headline) ? "Back: open the story" : "Injury news: open the story"}
+        <span key={pid} role="link" tabIndex={0} className="gc-inj-item" title={isBack(n) ? "Back: open the story" : "Injury news: open the story"}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); open(n.id); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); open(n.id); } }}>
-          <i aria-hidden="true">{BACK.test(n.headline) ? "✅" : "🚑"}</i> <b>{surname(players[pid].n)}</b> <img src={logo(team)} alt={team} />
+          <i aria-hidden="true">{isBack(n) ? "✅" : "🚑"}</i> <b>{surname(players[pid].n)}</b> <img src={logo(team)} alt={team} />
         </span>
       ))}
     </div>
